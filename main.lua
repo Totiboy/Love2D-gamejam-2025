@@ -3,6 +3,7 @@ love = require("love")
 player = require("player")
 Gamestatesmanager = require("gamestatesmanager")
 Button = require("Button")
+bullet = require("bullet")
 Game = Game()
 
 --loading the game's necessary stuff
@@ -30,6 +31,12 @@ function love.update(dt)
     --running state logic
     if Game.states.running then
         player:move(dt)
+        if love.mouse.isDown(1) then -- Left mouse button is held down
+        
+            local mouseX, mouseY = love.mouse.getPosition()
+            bullet.spawn(player.x, player.y, mouseX, mouseY, 500) -- Example speed
+        end
+        bullet.update(dt)
     end
 
     --pause state logic
@@ -52,6 +59,7 @@ function love.draw()
     --the running state
     if Game.states.running then
         player:draw()
+        bullet.draw()
     end
 
     --the pause state
