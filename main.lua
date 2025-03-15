@@ -1,21 +1,95 @@
+--loading libraries and setting up the game states
 love = require("love")
 player = require("player")
+Gamestatesmanager = require("gamestatesmanager")
+Button = require("Button")
 bullet = require("bullet")
+Game = Game()
 
+--loading the game's necessary stuff
 function love.load()
+    StartButton = Button.new(love.graphics.getWidth()/2,love.graphics.getHeight()/2,200,100,"start")
+    ResumeButton = Button.new(10,love.graphics.getHeight()-110,200,100,"Resume")
+    
+    --this line makes it so the game starts with the menu state.
+    Game:changestates("menu")
+    --------
+    --this of course loads the player.
     player:load()
 end
 
 function love.update(dt)
-    player:move(dt)
-    if love.mouse.isDown(1) then -- Left mouse button is held down
-        local mouseX, mouseY = love.mouse.getPosition()
-        bullet.spawn(player.x, player.y, mouseX, mouseY, 500) -- Example speed
+    --this sets up the logic for different states.
+
+    --menu state logic
+    if Game.states.menu then
+        if StartButton:isClicked() then
+            Game:changestates("running")
+        end
     end
-    bullet.update(dt)
+
+    --running state logic
+    if Game.states.running then
+        player:move(dt)
+        if love.mouse.isDown(1) then -- Left mouse button is held down
+        local mouseX, mouseY = love.mouse.getPosition()
+        
+        -- Gets horizontal spawn position
+        local spawnX = player.x + player.width / 2  -- Default: center
+        if mouseX < player.x + player.width / 2 then
+            spawnX = player.x  -- Left side
+        elseif mouseX > player.x + player.width / 2 then
+            spawnX = player.x + player.width  -- Right side
+        end
+
+        -- Gets vertical spawn position
+        local spawnY = player.y  -- Default: top of player
+        if mouseY > player.y + player.height then
+            spawnY = player.y + player.height  -- Bottom of player
+        end
+        
+        -- Spawn bullet with spawn point provided above
+        bullet.spawn(spawnX, spawnY, mouseX, mouseY, 500)
+        end
+        bullet.update(dt)
+    end
+
+    --pause state logic
+    if Game.states.pause then
+        if ResumeButton:isClicked() then
+            Game:changestates("running")
+        end
+    end
+    
 end
 
+--this displays different stuff on the screen based on the game state.
 function love.draw()
-    player:draw()
-    bullet.draw()
+
+    --the menu state
+    if Game.states.menu then
+        StartButton:draw()
+    end
+
+    --the running state
+    if Game.states.running then
+        player:draw()
+        bullet.draw()
+    end
+
+    --the pause state
+    if Game.states.pause then
+        love.graphics.setColor(1,1,1)
+        love.graphics.print("PAUSED",300 ,210,0,10)
+        ResumeButton:draw()
+    end
+end
+
+--if the escape key is pressed while the game is running , the game gets paused.
+function love.keypressed(key)
+    if key == "escape" then
+        if Game.states.running then
+            Game:changestates("pause")
+        end
+    end
 end
