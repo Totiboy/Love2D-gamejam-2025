@@ -19,6 +19,8 @@ function love.load()
     --------
     --this of course loads the player.
     player:load()
+
+    locations = {1,2,3,4,5}
     
 end
 
