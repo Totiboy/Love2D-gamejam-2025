@@ -31,11 +31,7 @@ function love.update(dt)
     --running state logic
     if Game.states.running then
         player:move(dt)
-        if love.mouse.isDown(1) then -- Left mouse button is held down
-        
-            local mouseX, mouseY = love.mouse.getPosition()
-            bullet.spawn(player.x, player.y, mouseX, mouseY, 500) -- Example speed
-        end
+      
         bullet.update(dt)
     end
 
@@ -76,5 +72,14 @@ function love.keypressed(key)
         if Game.states.running then
             Game:changestates("pause")
         end
+    end
+end
+
+
+function love.mousepressed(x,y,istouch,presses)
+    x = love.mouse.getX()
+    y = love.mouse.getY()
+    if istouch == 1 and Game.states.running then
+        bullet.spawn(player.x,player.y,x,y,500)
     end
 end
