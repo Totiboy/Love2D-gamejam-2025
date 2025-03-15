@@ -8,7 +8,8 @@ function Game()
     states = {
         menu = false,
         running = false,
-        pause = false
+        pause = false,
+        selection = false
     },
 
     --and this function handles the switching between states by checking whether the state you pass in the parameter corresponds
@@ -17,6 +18,7 @@ function Game()
         self.states.menu = state == "menu"
         self.states.running = state == "running"
         self.states.pause = state == "pause"
+        self.states.selection = state == "selection"
         
     end
         } 
