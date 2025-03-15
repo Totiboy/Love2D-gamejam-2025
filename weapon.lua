@@ -9,7 +9,7 @@ end
 
 --draws the GUN
 function weapon:draw()
-    love.graphics.draw(self.sprite,self.x,self.y,self.angle,.25,.25,-300,self.sprite:getHeight()/2)
+    love.graphics.draw(self.sprite,self.x,self.y,self.angle,.25,.25,0,self.sprite:getHeight()/2)
 end
 
 return weapon
