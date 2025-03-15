@@ -8,13 +8,15 @@ function player:load()
     self.height = 100
     self.width = 50
     self.speed = 300
+    self.candash = true
 end
+
 
 function player:move(dt)
     --THIS WHOLE BLOCK OF CODE'S PURPOSE IS TO SET THE DIRECTION OF THE MOVEMENT AND NORMALIZE IT USING THE PYTHAGOREAN THEOREM
     --------------------------------------------------------------
-    local d = {x=0,y=0}
-    local length = math.sqrt(d.x^2+d.y^2)
+    d = {x=0,y=0}
+    length = math.sqrt(d.x^2+d.y^2)
 
     if length>0 then
         d.x = d.x/length
@@ -45,6 +47,4 @@ function player:draw()
     love.graphics.setColor(1,1,1)
     love.graphics.rectangle("fill",self.x,self.y,self.width,self.height)
 end
-
-
 return player

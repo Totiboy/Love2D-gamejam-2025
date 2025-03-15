@@ -9,8 +9,8 @@ function bullet.spawn(x, y, targetX, targetY, speed)
     local velocityY = math.sin(angle) * speed
 
     table.insert(bullet.list, {
-        x = x,
-        y = y,
+        x = weapon.x,
+        y = weapon.y,
         vx = velocityX,
         vy = velocityY,
         speed = speed
