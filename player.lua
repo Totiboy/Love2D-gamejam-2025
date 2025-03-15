@@ -5,16 +5,17 @@ function player:load()
     self.x = 100
     self.y = 0
     self.health = 100
-    self.height = 100
-    self.width = 50
+    self.sprite = love.graphics.newImage("assets/Cop.png")
     self.speed = 300
+    self.candash = true
 end
+
 
 function player:move(dt)
     --THIS WHOLE BLOCK OF CODE'S PURPOSE IS TO SET THE DIRECTION OF THE MOVEMENT AND NORMALIZE IT USING THE PYTHAGOREAN THEOREM
     --------------------------------------------------------------
-    local d = {x=0,y=0}
-    local length = math.sqrt(d.x^2+d.y^2)
+    d = {x=0,y=0}
+    length = math.sqrt(d.x^2+d.y^2)
 
     if length>0 then
         d.x = d.x/length
@@ -43,8 +44,6 @@ end
 --this draws the player (who is a white square for now)
 function player:draw()
     love.graphics.setColor(1,1,1)
-    love.graphics.rectangle("fill",self.x,self.y,self.width,self.height)
+    love.graphics.draw(self.sprite,self.x,self.y,0,.25)
 end
-
-
 return player
