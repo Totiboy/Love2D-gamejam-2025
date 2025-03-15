@@ -5,8 +5,7 @@ function player:load()
     self.x = 100
     self.y = 0
     self.health = 100
-    self.height = 100
-    self.width = 50
+    self.sprite = love.graphics.newImage("assets/Cop.png")
     self.speed = 300
     self.candash = true
 end
@@ -45,6 +44,6 @@ end
 --this draws the player (who is a white square for now)
 function player:draw()
     love.graphics.setColor(1,1,1)
-    love.graphics.rectangle("fill",self.x,self.y,self.width,self.height)
+    love.graphics.draw(self.sprite,self.x,self.y,0,.25)
 end
 return player
