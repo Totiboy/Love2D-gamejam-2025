@@ -1,7 +1,8 @@
 bullet = {}
 bullet.list = {} 
 bullet.cooldown = 0  
-bullet.fireRate = 0.1 -- Fire Rate
+bullet.fireRate = 0.1 -- Adjust Fire Rate Here
+ammo = 10
 
 function bullet.spawn(x, y, targetX, targetY, speed)
     if bullet.cooldown <= 0 then
@@ -10,14 +11,16 @@ function bullet.spawn(x, y, targetX, targetY, speed)
         local angle = math.atan2(targetY - y, targetX - x)
         local velocityX = math.cos(angle) * speed
         local velocityY = math.sin(angle) * speed
+
         table.insert(bullet.list, {
-            x = x,
-            y = y,
+            x = weapon.x + weapon.sprite:getWidth() * 0.25 * math.cos(angle),
+            y = weapon.y + weapon.sprite:getHeight() * 0.25 * math.sin(angle),
             vx = velocityX,
             vy = velocityY,
             speed = speed
         })
         bullet.cooldown = bullet.fireRate -- Reset cooldown
+        ammo = ammo - 1
     end
 end
 
@@ -42,6 +45,12 @@ function bullet.draw()
         love.graphics.circle("fill", b.x, b.y, 5)
     end
     love.graphics.setColor(1, 1, 1)
+end
+
+function bullet.reload()
+    if love.keyboard.isDown("r") then
+        ammo = 10
+    end
 end
 
 return bullet
