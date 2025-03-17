@@ -7,7 +7,6 @@ bullet = require("bullet")
 gun = require("weapon")
 Game = Game()
 
-
 --loading the game's necessary stuff
 function love.load()
     StartButton = Button.new(love.graphics.getWidth()/2,love.graphics.getHeight()/2,200,100,"start")
@@ -18,9 +17,6 @@ function love.load()
     --------
     --this of course loads the player.
     player:load()
-
-    locations = {1,2,3,4,5}
-    
 end
 
 function love.update(dt)
@@ -33,9 +29,10 @@ function love.update(dt)
         end
     end
 
-    --running state logic --
+    --running state logic
     if Game.states.running then
         player:move(dt)
+        player:update(dt)
         gun:update()
         Firing() -- Replaced mousepressed with this
         bullet.reload() -- In Bullet.lua
@@ -49,10 +46,6 @@ function love.update(dt)
         end
     end
     
-    --selection state logic
-    if Game.states.selection then
-        
-    end
 end
 
 --this displays different stuff on the screen based on the game state.
@@ -65,8 +58,6 @@ function love.draw()
 
     --the running state
     if Game.states.running then
-        love.graphics.setBackgroundColor(87/255, 151/255, 255/255)
-        --drawing both the player and the bullets
         player:draw()
         bullet.draw()
         weapon:draw()
@@ -83,18 +74,12 @@ function love.draw()
         love.graphics.print("PAUSED",300 ,210,0,10)
         ResumeButton:draw()
     end
-
-    --selection state 
-    if Game.states.selection then
-        
-    end
 end
-
 
 --if the escape key is pressed while the game is running , the game gets paused.
 function love.keypressed(key)
-    if Game.states.running then
-        if key == "escape" then
+    if key == "escape" then
+        if Game.states.running then
             Game:changestates("pause")
         end
     end
