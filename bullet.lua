@@ -1,7 +1,7 @@
 bullet = {}
 bullet.list = {} 
 bullet.cooldown = 0  
-bullet.fireRate = 0.1 -- Adjust Fire Rate Here
+bullet.fireRate = 0.3 -- Adjust Fire Rate Here
 ammo = 10
 
 function bullet.spawn(x, y, targetX, targetY, speed)
@@ -52,6 +52,5 @@ function bullet.reload()
         ammo = 10
     end
 end
-
 
 return bullet

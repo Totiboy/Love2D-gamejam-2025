@@ -5,11 +5,25 @@ function player:load()
     self.x = 100
     self.y = 0
     self.health = 100
+    self.height = 100
     self.sprite = love.graphics.newImage("assets/Cop.png")
-    self.speed = 300
-    self.candash = true
+    self.width = 50
+    self.speed = 200
+-- DASH VARIABLES
+    self.dash_speed = 1400   -- Speed during dash
+    self.dash_duration = 0.1 -- How long the dash lasts
+    self.dash_cooldown = 0.5 -- Time before dashing again
+    self.dash_timer = 0
+    self.cooldown_timer = 0
+    self.is_dashing = false
+    self.dir_x = 0
+    self.dir_y = 0
+-- WADDLE VARIABLES (Slight Tilts for the Illusion of Movement)
+    self.waddle_timer = 0
+    self.waddle_direction = 1 -- Controls the tilt direction
+    self.waddle_speed = 10 -- Speed of the waddle effect
+    self.waddle_amount = 0.05 -- How much the player tilts
 end
-
 
 function player:move(dt)
     --THIS WHOLE BLOCK OF CODE'S PURPOSE IS TO SET THE DIRECTION OF THE MOVEMENT AND NORMALIZE IT USING THE PYTHAGOREAN THEOREM
@@ -34,16 +48,77 @@ function player:move(dt)
     if love.keyboard.isDown("down") or love.keyboard.isDown("s") then
         d.y = d.y + 1
     end
----------------------------------------------------------------------------
+--------------------------------------------------------------------------
 ---this sets up the speed to correspond with the direction of the movement and deltatime
     self.x = self.x + self.speed * d.x * dt
     self.y = self.y + self.speed * d.y * dt
-    
+end
+
+function player:update(dt)
+    -- Dash Cooldown Timer --
+    if self.cooldown_timer > 0 then
+        self.cooldown_timer = self.cooldown_timer - dt
+    end
+
+    -------------------------------------- Handle Dashing-------------------------------------------------------------
+    if self.is_dashing then
+        self.dash_timer = self.dash_timer - dt
+        if self.dash_timer <= 0 then
+            self.is_dashing = false
+            self.cooldown_timer = self.dash_cooldown
+        end
+        self.x = self.x + self.dir_x * self.dash_speed * dt
+        self.y = self.y + self.dir_y * self.dash_speed * dt
+        return -- Stop normal movement during dash
+    end
+
+    self:move(dt) -- Continue normal movement if not dashing
+
+    -- Dash Activation
+    if love.keyboard.isDown("space") and self.cooldown_timer <= 0 then
+        self:startDash()
+    end
+-------------------------------------------- Waddle Movement ---------------------------------------------------------
+    if d.x ~= 0 or d.y ~= 0 then -- Only waddle when moving
+        self.waddle_timer = self.waddle_timer + dt * self.waddle_speed
+        if self.waddle_timer >= 1 then
+            self.waddle_timer = 0
+            self.waddle_direction = -self.waddle_direction -- Swap tilt direction
+        end
+    end
+end
+
+----------------------------------------------- During Dash ---------------------------------------------------------
+function player:startDash()
+    local d = {x = 0, y = 0}
+
+    if love.keyboard.isDown("right") or love.keyboard.isDown("d") then
+        d.x = d.x + 1
+    end
+    if love.keyboard.isDown("left") or love.keyboard.isDown("a") then
+        d.x = d.x - 1
+    end
+    if love.keyboard.isDown("up") or love.keyboard.isDown("w") then
+        d.y = d.y - 1
+    end
+    if love.keyboard.isDown("down") or love.keyboard.isDown("s") then
+        d.y = d.y + 1
+    end
+
+    -- Normalize direction
+    local length = math.sqrt(d.x^2 + d.y^2)
+    if length > 0 then
+        self.dir_x, self.dir_y = d.x / length, d.y / length
+        self.is_dashing = true
+        self.dash_timer = self.dash_duration
+    end
 end
 
 --this draws the player (who is a white square for now)
 function player:draw()
     love.graphics.setColor(1,1,1)
-    love.graphics.draw(self.sprite, self.x, self.y, 0, 0.25)
+    -- love.graphics.draw(self.sprite, self.x, self.y, 0, 0.25)
+    love.graphics.draw(self.sprite, self.x, self.y, self.waddle_direction * self.waddle_amount, 0.25, 0.25, self.width / 2, self.height / 2)
 end
+
 return player
