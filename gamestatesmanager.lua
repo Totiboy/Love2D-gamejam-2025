@@ -1,7 +1,7 @@
---as much as I hate to admit it I didn't come up with this , I watched a tutorial.
+-- as much as I hate to admit it I didn't come up with this , I watched a tutorial.
 
---this is a function that handles game states , it returns a table that contains
---a states table and a function that switches between states.
+-- this is a function that handles game states , it returns a table that contains
+-- a states table and a function that switches between states.
 function Game()
     return {
         --the states table , you can add as many states as you like.

@@ -5,7 +5,6 @@ Gamestatesmanager = require("gamestatesmanager")
 Button = require("Button")
 bullet = require("bullet")
 gun = require("weapon")
-local ammo = 10
 Game = Game()
 
 
@@ -34,11 +33,12 @@ function love.update(dt)
         end
     end
 
-    --running state logic
+    --running state logic --
     if Game.states.running then
         player:move(dt)
         gun:update()
-        Reload()
+        Firing() -- Replaced mousepressed with this
+        bullet.reload() -- In Bullet.lua
         bullet.update(dt)
     end
 
@@ -72,7 +72,7 @@ function love.draw()
         weapon:draw()
         --drawing the ammo displayer
         love.graphics.setColor(1,1,1)
-        love.graphics.print("AMMO :"..ammo,10,love.graphics.getHeight()-100,0,4)
+        love.graphics.print("AMMO :"..ammo, 10, love.graphics.getHeight() - 100,0,4)
         --uh calling the reload function (do we really need one?)
         
     end
@@ -98,22 +98,21 @@ function love.keypressed(key)
             Game:changestates("pause")
         end
     end
-
 end
 
---limiting the shooting you can do lmao
-function love.mousepressed(x,y,istouch)
-    x = love.mouse.getX()
-    y = love.mouse.getY()
-    if istouch == 1 and Game.states.running and ammo>0 then
-        bullet.spawn(player.x,player.y,x,y,500)
-        ammo = ammo-1
+function Firing() -- Replaced love.mousepressed with this so the button can be held down
+    if love.mouse.isDown(1) and ammo > 0 then
+        local mouseX, mouseY = love.mouse.getX(), love.mouse.getY()
+
+        -- Gun barrel offset (Adjust this based on your sprite size)
+        local barrelOffset = weapon.sprite:getWidth() * 0.25 -- Since scale is 0.25
+
+        -- Calculate the exact bullet spawn position at the barrel tip
+        local spawnX = weapon.x + math.cos(weapon.angle) * barrelOffset
+        local spawnY = weapon.y + math.sin(weapon.angle) * barrelOffset
+
+        -- Spawn the bullet from the barrel, not the player's center
+        bullet.spawn(spawnX, spawnY, mouseX, mouseY, 500)
     end
 end
-
---do I need to explain this?
-function Reload()
-    if love.keyboard.isDown("r") then
-        ammo = 10
-    end
-end
+-- Reload and Ammo Variables have been moved to Bullet
