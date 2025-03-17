@@ -33,7 +33,7 @@ function love.update(dt)
         end
     end
 
-    --running state logic
+    --running state logic --
     if Game.states.running then
         player:move(dt)
         gun:update()

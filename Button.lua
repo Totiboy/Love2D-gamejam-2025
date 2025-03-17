@@ -1,6 +1,6 @@
 local Button = {}
 
---instantiating a new button
+-- instantiating a new button
 function Button.new(x, y, width, height, text)
     local instance = setmetatable({}, {__index = Button})
     instance.x = x

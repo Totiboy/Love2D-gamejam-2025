@@ -34,7 +34,7 @@ function player:move(dt)
     if love.keyboard.isDown("down") or love.keyboard.isDown("s") then
         d.y = d.y + 1
     end
---------------------------------------------------------------------------
+---------------------------------------------------------------------------
 ---this sets up the speed to correspond with the direction of the movement and deltatime
     self.x = self.x + self.speed * d.x * dt
     self.y = self.y + self.speed * d.y * dt

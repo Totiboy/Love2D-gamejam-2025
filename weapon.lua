@@ -1,4 +1,4 @@
-weapon ={}
+weapon = {}
 --updates position and direction of the GUN according to the player position and the mouse's
 function weapon:update()
     self.x = player.x + player.sprite:getWidth() * 0.25/2
