@@ -12,6 +12,10 @@ Game = Game()
 function love.load()
     StartButton = Button.new(love.graphics.getWidth()/2,love.graphics.getHeight()/2,200,100,"start")
     ResumeButton = Button.new(10,love.graphics.getHeight()-110,200,100,"Resume")
+    selectbutton1 = Button.new(200,500,200,100,"Select")
+    selectbutton2 = Button.new(200+300,500,200,100,"Select")
+    selectbutton3 = Button.new(200+300+300,500,200,100,"Select")
+    
     
     --this line makes it so the game starts with the menu state.
     Game:changestates("selection")
@@ -46,10 +50,31 @@ function love.update(dt)
             Game:changestates("running")
         end
     end
-    
+
     --selection state
     if Game.states.selection then
+
+        --horrible code? absolutely , do I care? fuck no.
         PICKTHEMITEMS:Load()
+     
+        
+        if selectbutton1:isClicked() then
+            PICKTHEMITEMS:addtoplayer(1)
+            PICKTHEMITEMS:Recover()
+            
+            Game:changestates("running")
+        end
+        if selectbutton2:isClicked() then
+            PICKTHEMITEMS:addtoplayer(2)
+            PICKTHEMITEMS:Recover()
+            Game:changestates("running")
+        end
+        if selectbutton3:isClicked() then
+            PICKTHEMITEMS:addtoplayer(3)
+            PICKTHEMITEMS:Recover()
+            Game:changestates("running")
+        end
+    
         
     end
 end
@@ -66,7 +91,7 @@ function love.draw()
     if Game.states.running then
         player:draw()
         bullet.draw()
-        weapon:draw()
+        gun:draw()
         --drawing the ammo displayer
         love.graphics.setColor(1,1,1)
         love.graphics.print("AMMO :"..ammo, 10, love.graphics.getHeight() - 100,0,4)
@@ -84,6 +109,9 @@ function love.draw()
     --selection state
     if Game.states.selection then
         PICKTHEMITEMS:Draw()
+        selectbutton1:draw()
+        selectbutton2:draw()
+        selectbutton3:draw()
     end
 end
 
