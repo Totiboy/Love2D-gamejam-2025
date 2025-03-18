@@ -5,6 +5,7 @@ Gamestatesmanager = require("gamestatesmanager")
 Button = require("Button")
 bullet = require("bullet")
 gun = require("weapon")
+PICKTHEMITEMS = require("UpgradesManager")
 Game = Game()
 
 --loading the game's necessary stuff
@@ -13,7 +14,7 @@ function love.load()
     ResumeButton = Button.new(10,love.graphics.getHeight()-110,200,100,"Resume")
     
     --this line makes it so the game starts with the menu state.
-    Game:changestates("menu")
+    Game:changestates("selection")
     --------
     --this of course loads the player.
     player:load()
@@ -46,6 +47,11 @@ function love.update(dt)
         end
     end
     
+    --selection state
+    if Game.states.selection then
+        PICKTHEMITEMS:Load()
+        
+    end
 end
 
 --this displays different stuff on the screen based on the game state.
@@ -73,6 +79,11 @@ function love.draw()
         love.graphics.setColor(1,1,1)
         love.graphics.print("PAUSED",300 ,210,0,10)
         ResumeButton:draw()
+    end
+
+    --selection state
+    if Game.states.selection then
+        PICKTHEMITEMS:Draw()
     end
 end
 

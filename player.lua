@@ -114,7 +114,7 @@ function player:startDash()
     end
 end
 
---this draws the player (who is a white square for now)
+--this draws the player
 function player:draw()
     love.graphics.setColor(1,1,1)
     -- love.graphics.draw(self.sprite, self.x, self.y, 0, 0.25)
