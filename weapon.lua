@@ -1,4 +1,7 @@
 weapon = {}
+weapon.sprite = love.graphics.newImage("assets/Pistol.png") --I was told it was good practice to leave this lil line here.
+
+
 --updates position and direction of the GUN according to the player position and the mouse's
 function weapon:update()
     self.x = player.x + player.sprite:getWidth() * 0.2/2
