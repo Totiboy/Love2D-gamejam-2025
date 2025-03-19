@@ -3,7 +3,7 @@ enemy = {}
 local enemies = {}
 local spawnTimer = 0
 local maxEnemies = 8
-local spawnRate = 4 -- seconds
+local spawnRate = 4 -- Seconds
 local enemySprites = {
     love.graphics.newImage("assets/Associates1.png"),
     love.graphics.newImage("assets/Associates2.png"),
@@ -40,10 +40,10 @@ function enemy:spawn()
     end
 
 
-    ------------------------------------------------------------ Add the enemy to the game
+    ------------------------------------------------------------ Add the enemy to the game ------------------------------------------------------------ 
     table.insert(enemies, {
         x = x, y = y, 
-        speed = 260, -- Increased speed
+        speed = 160, -- Increased speed
         sprite = enemySprites[math.random(#enemySprites)],
         gunSprite = enemyGunSprite,
         angle = 0, -- Ensure angle is initialized
@@ -61,38 +61,42 @@ function enemy:spawn()
     })
 end
 
-function avoidanceZones(e, dt)
-    -- Define the hidden avoidance zones (x, y, radius)
-    local hiddenZones = {
-        {x = love.graphics.getWidth() * 0.25, y = love.graphics.getHeight() * 0.25, r = 80},
-        {x = love.graphics.getWidth() * 0.75, y = love.graphics.getHeight() * 0.25, r = 80},
-        {x = love.graphics.getWidth() * 0.5,  y = love.graphics.getHeight() * 0.5,  r = 100},
-        {x = love.graphics.getWidth() * 0.25, y = love.graphics.getHeight() * 0.75, r = 80},
-        {x = love.graphics.getWidth() * 0.75, y = love.graphics.getHeight() * 0.75, r = 80}
-    }
+-------------------------------------------- Enemy Updates on Mechanics
+function enemy:update(dt)
+------------------------------------------------------------ Avoidance Zone Logic (Circle in Mid) ------------------------------------------------------------ 
+    -- Avoidance Zone Variables
+local avoidanceActive = false
+local avoidanceTimer = 0
+local avoidanceDuration = 5 -- Duration before toggling (Timer for On and Off basically)
 
-    -- Check if the enemy is inside any of the hidden zones
-    for _, zone in ipairs(hiddenZones) do
-        local dx, dy = e.x - zone.x, e.y - zone.y
+local function avoidanceZone(e, dt)
+    local centerX, centerY = love.graphics.getWidth() / 2, love.graphics.getHeight() / 2
+    local avoidRadius = 350 -- Size of the avoidance area
+
+    -- Toggle the avoidance zone every few seconds
+    avoidanceTimer = avoidanceTimer + dt
+    if avoidanceTimer >= avoidanceDuration then
+        avoidanceActive = not avoidanceActive -- Toggle active/inactive
+        avoidanceTimer = 0
+    end
+
+    -- If the avoidance zone is active, push enemies away
+    if avoidanceActive then
+        local dx, dy = e.x - centerX, e.y - centerY
         local dist = math.sqrt(dx^2 + dy^2)
 
-        if dist < zone.r then
-            local escapeFactor = math.random() * 0.5 + 1.0  -- Randomize escape movement
-            local moveAmount = ((zone.r - dist) / zone.r) * e.speed * dt * 3 * escapeFactor
-
-            -- Move enemy away from the hidden zone center
-            e.x = e.x + (dx / dist) * moveAmount
-            e.y = e.y + (dy / dist) * moveAmount
-            return  -- Exit early since we only need to react to one zone at a time
+        if dist < avoidRadius then
+            -- Move enemy away from the center
+            e.x = e.x + (dx / dist) * e.speed * dt * 2
+            e.y = e.y + (dy / dist) * e.speed * dt * 2
         end
     end
 end
 
--------------------------------------------- Enemy Updates on Mechanics ------------------------------------------------------------------------
-function enemy:update(dt)
-    for i, e in ipairs(enemies) do
-        avoidanceZones(e, dt) -- Apply hidden avoidance
-    end    
+for i, e in ipairs(enemies) do
+    avoidanceZone(e, dt) -- Call the function for each enemy
+end
+------------------------------------------------------------ Enemy Spawning Logic ------------------------------------------------------------ 
     spawnTimer = spawnTimer + dt
     if spawnTimer >= spawnRate then
         if #enemies > 5 then
@@ -107,97 +111,119 @@ function enemy:update(dt)
         end
         spawnTimer = 0
     end
-
+------------------------------------------------------------ Distance Variables for Enemy AI ------------------------------------------------------------ 
     for i, e in ipairs(enemies) do
         local dx, dy = player.x - e.x, player.y - e.y
         local distance = math.sqrt(dx^2 + dy^2)
         local targetDistance = e.behavior == "aggressive" and 200 or 300
-
-    ------------------------------------------------------------ Maintain a set distance from the player
-    local avoidingPlayer = false  -- Track if enemy is avoiding the player
-    if distance < targetDistance - 120 then  -- Trigger avoidance sooner
-        local avoidSpeed = e.speed * 1.3 -- Increase avoidance speed
-        e.x = e.x - (dx / distance) * avoidSpeed * dt
-        e.y = e.y - (dy / distance) * avoidSpeed * dt
-        avoidingPlayer = true
-    elseif distance > targetDistance + 120 then -- Move toward player sooner
-        e.x = e.x + (dx / distance) * e.speed * dt
-        e.y = e.y + (dy / distance) * e.speed * dt
-    else
-        -- Add constant movement by slightly shifting in a random direction
-        local moveAngle = math.atan2(dy, dx) + math.rad(math.random(-20, 20))
-        e.x = e.x + math.cos(moveAngle) * e.speed * 0.5 * dt
-        e.y = e.y + math.sin(moveAngle) * e.speed * 0.5 * dt
------------------------------------------------------------- Apply avoidance zones after player avoidance
-        if not avoidingPlayer then
-            avoidanceZones(e, dt)
+------------------------------------------------------------ AI Moves enemies to Edges or Center ------------------------------------------------------------ 
+        if not e.moveType then
+            e.moveType = math.random() < 0.5 and "edges" or "center"
+            e.switchTimer = math.random(2, 4) -- Switch every x, y seconds
         end
-    end
 
+        -- Countdown for switching movement type
+        e.switchTimer = e.switchTimer - dt
+        if e.switchTimer <= 0 then
+            e.moveType = (e.moveType == "edges") and "center" or "edges"
+            e.switchTimer = math.random(4, 7) -- Reset timer
+        end
 
-    ------------------------------------------------------------ Enemy dodging behavior
-    if math.abs(-player.angle - e.angle) < 0.3 then
-        local dodgeDir = math.random(0, 1) == 0 and -1 or 1
-            e.x = e.x + dodgeDir * e.speed * dt * 1.5
-    end
+        -- Movement logic
+        if e.moveType == "edges" then
+            -- Move along the edges (random horizontal/vertical shifting)
+            if e.x < 150 then
+                e.x = e.x + e.speed * dt
+            elseif e.x > love.graphics.getWidth() - 150 then
+                e.x = e.x - e.speed * dt
+            end
+            if e.y < 150 then
+                e.y = e.y + e.speed * dt
+            elseif e.y > love.graphics.getHeight() - 150 then
+                e.y = e.y - e.speed * dt
+            end
+        else
+            -- Move around the center area
+            local targetX = love.graphics.getWidth() / 2 + math.random(-200, 200)
+            local targetY = love.graphics.getHeight() / 2 + math.random(-150, 150)
+            local dx, dy = targetX - e.x, targetY - e.y
+            local dist = math.sqrt(dx^2 + dy^2)
+            if dist > 10 then -- Prevent jittering near target
+                e.x = e.x + (dx / dist) * e.speed * 0.5 * dt
+                e.y = e.y + (dy / dist) * e.speed * 0.5 * dt
+            end
+        end
 
-        ------------------------------------------------------------ Avoid clustering with other enemies
-    if not avoidingPlayer then
+------------------------------------------------------------ Avoid Enemy Gathering/Overlapping ------------------------------------------------------------ 
         for j, other in ipairs(enemies) do
             if i ~= j then
                 local diffX, diffY = e.x - other.x, e.y - other.y
                 local dist = math.sqrt(diffX^2 + diffY^2)
-                if dist < 200 then
-                    local randomFactor = math.random() * 0.5 + 0.75
-                    e.x = e.x + (diffX / dist) * e.speed * dt * 3 * randomFactor
-                    e.y = e.y + (diffY / dist) * e.speed * dt * 3 * randomFactor
+                local minDistance = math.random(170, 220) -- Randomize required distance
+                if dist < minDistance then
+                    local moveAway = ((minDistance - dist) / minDistance) * e.speed * dt * 2
+                    e.x = e.x + (diffX / dist) * moveAway
+                    e.y = e.y + (diffY / dist) * moveAway
                 end
             end
         end
-    end                
-                               
-    ------------------------------------------------------------ Enemy aiming
-    e.angle = math.atan2(dy, dx) + math.rad(math.random(-8, 8))
 
-        ------------------------------------------------------------ Waddle effect
-    e.waddleTimer = e.waddleTimer + dt * e.waddleSpeed
-    if e.waddleTimer >= 1 then
-        e.waddleTimer = 0
-        e.waddleDirection = -e.waddleDirection -- Swap tilt direction
-    end
+------------------------------------ Player Avoidance Logic (Enemy Avoid Player if near)------------------------------------------------------------ 
+        local diffX, diffY = e.x - player.x, e.y - player.y
+        local playerDist = math.sqrt(diffX^2 + diffY^2)
 
-    ------------------------------------------------------------ Tactical reloading movement
-    if e.reloading then
-        e.x = e.x - (dx / distance) * e.speed * dt * 1.5
-        e.y = e.y - (dy / distance) * e.speed * dt * 1.5
-    end
-
-    ------------------------------------------------------------ Shooting logic
-    if not e.reloading then
-        e.shootingTimer = e.shootingTimer + dt
-        if e.shootingTimer >= 1.5 then
-            enemy:shoot(e)
-            e.bulletsFired = e.bulletsFired + 1
-            e.shootingTimer = 0
+        if playerDist > 0 and playerDist < 350 then  -- Avoid player if too close
+            local moveAway = ((350 - playerDist) / 350) * e.speed * dt * 3  -- Increased force
+            e.x = e.x + (diffX / playerDist) * moveAway
+            e.y = e.y + (diffY / playerDist) * moveAway
         end
-        if e.bulletsFired >= 6 then
-            e.reloading = true
-            e.bulletsFired = 0
-            e.shootingTimer = -1
-        end
-    else
-        e.shootingTimer = e.shootingTimer + dt
-        if e.shootingTimer >= 0 then
-            e.reloading = false
-        end
-    end
 
-        ------------------------------------------------------------ Remove if dead
-    if e.health <= 0 then
-        table.remove(enemies, i)
+
+--------------------------------------------------- Enemy Aiming ------------------------------------------------------------ 
+        local dx, dy = player.x - e.x, player.y - e.y
+        local targetAngle = math.atan2(dy, dx) + math.rad(math.random(-10, 10)) -- Smaller randomness for stability
+        e.angle = e.angle + (targetAngle - e.angle) * dt * 5 -- Smooth rotation
+
+--------------------------------------------------- Waddle Effect --------------------------------------------------- 
+        e.waddleTimer = e.waddleTimer + dt * e.waddleSpeed
+        if e.waddleTimer >= 1 then
+            e.waddleTimer = 0
+            e.waddleDirection = -e.waddleDirection
+        end
+
+---------------------------------------- Tactical Enemy Reloading Movement ---------------------------------------------
+        if e.reloading then
+            e.x = e.x - (dx / distance) * e.speed * dt * 1.5
+            e.y = e.y - (dy / distance) * e.speed * dt * 1.5
+        end
+
+---------------------------------------------- Enemy Shooting Logic --------------------------------------------------- 
+        if not e.reloading then
+            e.shootingTimer = e.shootingTimer + dt
+            if e.shootingTimer >= 1.5 then
+                enemy:shoot(e)
+                e.bulletsFired = e.bulletsFired + 1
+                e.shootingTimer = 0
+            end
+            if e.bulletsFired >= 6 then
+                e.reloading = true
+                e.bulletsFired = 0
+                e.shootingTimer = -1
+            end
+        else
+            e.shootingTimer = e.shootingTimer + dt
+            if e.shootingTimer >= 0 then
+                e.reloading = false
+            end
+        end
+
+--------------------------------------------------- Remove if dead --------------------------------------------------- 
+        if e.health <= 0 then
+            table.remove(enemies, i)
         end
     end
 end
+
 
 
 

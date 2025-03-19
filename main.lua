@@ -14,9 +14,9 @@ enemy = require("enemy")
 function love.load()
     StartButton = Button.new(love.graphics.getWidth()/2,love.graphics.getHeight()/2,200,100,"start")
     ResumeButton = Button.new(10,love.graphics.getHeight()-110,200,100,"Resume")
-    selectbutton1 = Button.new(200,500,200,100,"Select")
-    selectbutton2 = Button.new(200+300,500,200,100,"Select")
-    selectbutton3 = Button.new(200+300+300,500,200,100,"Select")
+    selectbutton1 = Button.new(200,500,200,100,"Select 1")
+    selectbutton2 = Button.new(200+300,500,200,100,"Select 2")
+    selectbutton3 = Button.new(200+300+300,500,200,100,"Select 3")
     
     
     --this line makes it so the game starts with the menu state.
@@ -24,6 +24,8 @@ function love.load()
     --------
     --this of course loads the player.
     player:load()
+-- Loads Items that change stats/mechanics
+    player:applyUpgrades()
 
     -- Enemy Spawn Timer
     enemySpawnTimer = 0
@@ -110,7 +112,7 @@ function love.draw()
         enemy:draw() -- ✅ Make sure enemy.draw() exists in enemy.lua
         --drawing the ammo displayer
         love.graphics.setColor(1,1,1)
-        love.graphics.print("AMMO :"..ammo, 10, love.graphics.getHeight() - 100,0,4)
+        love.graphics.print("AMMO :"..player.ammo, 10, love.graphics.getHeight() - 100,0,4)
     end
 
     --the pause state
@@ -139,7 +141,7 @@ function love.keypressed(key)
 end
 
 function Firing() -- Replaced love.mousepressed with this so the button can be held down
-    if love.mouse.isDown(1) and ammo > 0 then
+    if love.mouse.isDown(1) and player.ammo > 0 then
         local mouseX, mouseY = love.mouse.getX(), love.mouse.getY()
 
         -- Gun barrel offset (Adjust this based on your sprite size)
@@ -150,6 +152,6 @@ function Firing() -- Replaced love.mousepressed with this so the button can be h
         local spawnY = weapon.y + math.sin(weapon.angle) * barrelOffset
 
         -- Spawn the bullet from the barrel, not the player's center
-        bullet.spawn(spawnX, spawnY, mouseX, mouseY, 500)
+        bullet.spawn(spawnX, spawnY, mouseX, mouseY, player.bullet_speed)
     end
 end

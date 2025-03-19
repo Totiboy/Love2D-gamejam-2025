@@ -20,11 +20,11 @@ UpgradesManager = {}
 
 --these items are placeholders , you should add actual items instead of these lmao
 UpgradesManager.Items = {
-    "Trigger Crank",
-    "Long Barrell",
-    "Army Helmet",
-    "Extended Magazine",
-    "Foregrip"
+    "Trigger Crank (+Fire Rate)",
+    "Long Barrell (+Bullet Speed)",
+    "Army Helmet (+Health)",
+    "Extended Magazine (+Ammo)",
+    "Foregrip (+Movement Speed)"
 }
 
 --a table that has the items that the player will pick from.
@@ -53,6 +53,7 @@ function UpgradesManager:addtoplayer(num)
     if index ==num and #player.passives<=3 then
         table.insert(player.passives,self.ChosenItems[index])
         table.remove(self.ChosenItems,index)
+        player:applyUpgrades()
     end
    end
 end
