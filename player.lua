@@ -23,6 +23,9 @@ function player:load()
     self.waddle_direction = 1 -- Controls the tilt direction
     self.waddle_speed = 10 -- Speed of the waddle effect
     self.waddle_amount = 0.05 -- How much the player tilts
+
+    self.angle = 0
+
 end
 
 function player:move(dt)
@@ -55,6 +58,9 @@ function player:move(dt)
 end
 
 function player:update(dt)
+    local mouseX, mouseY = love.mouse.getPosition()
+    self.angle = math.atan2(mouseY - player.y, mouseX - player.x)
+
     -- Dash Cooldown Timer --
     if self.cooldown_timer > 0 then
         self.cooldown_timer = self.cooldown_timer - dt
@@ -118,7 +124,7 @@ end
 function player:draw()
     love.graphics.setColor(1,1,1)
     -- love.graphics.draw(self.sprite, self.x, self.y, 0, 0.25)
-    love.graphics.draw(self.sprite, self.x, self.y, self.waddle_direction * self.waddle_amount, 0.25, 0.25, self.width / 2, self.height / 2)
+    love.graphics.draw(self.sprite, self.x, self.y, self.waddle_direction * self.waddle_amount, 0.2, 0.2, self.width / 2, self.height / 2)
 end
 
 return player

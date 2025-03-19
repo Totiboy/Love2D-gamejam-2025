@@ -6,6 +6,8 @@ Button = require("Button")
 bullet = require("bullet")
 gun = require("weapon")
 Game = Game()
+enemy = require("enemy")
+
 
 --loading the game's necessary stuff
 function love.load()
@@ -14,9 +16,13 @@ function love.load()
     
     --this line makes it so the game starts with the menu state.
     Game:changestates("menu")
-    --------
-    --this of course loads the player.
+
+    -- Load player
     player:load()
+
+    -- Enemy Spawn Timer
+    enemySpawnTimer = 0
+    enemySpawnInterval = 2  -- Spawns every 2 seconds
 end
 
 function love.update(dt)
@@ -37,15 +43,23 @@ function love.update(dt)
         Firing() -- Replaced mousepressed with this
         bullet.reload() -- In Bullet.lua
         bullet.update(dt)
-    end
+        enemy:update(dt)
+        enemy:updateBullets(dt)
 
+        -- Enemy spawning logic (Fixed)
+        enemySpawnTimer = enemySpawnTimer + dt
+        if enemySpawnTimer >= enemySpawnInterval then
+            enemy.spawn()
+            enemySpawnTimer = 0  -- Reset timer
+        end
+    end
+    
     --pause state logic
     if Game.states.pause then
         if ResumeButton:isClicked() then
             Game:changestates("running")
         end
     end
-    
 end
 
 --this displays different stuff on the screen based on the game state.
@@ -61,11 +75,10 @@ function love.draw()
         player:draw()
         bullet.draw()
         weapon:draw()
+        enemy:draw() -- ✅ Make sure enemy.draw() exists in enemy.lua
         --drawing the ammo displayer
         love.graphics.setColor(1,1,1)
         love.graphics.print("AMMO :"..ammo, 10, love.graphics.getHeight() - 100,0,4)
-        --uh calling the reload function (do we really need one?)
-        
     end
 
     --the pause state
@@ -100,4 +113,3 @@ function Firing() -- Replaced love.mousepressed with this so the button can be h
         bullet.spawn(spawnX, spawnY, mouseX, mouseY, 500)
     end
 end
--- Reload and Ammo Variables have been moved to Bullet
