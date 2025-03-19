@@ -1,13 +1,12 @@
+player = require("player")
+
 bullet = {}
 bullet.list = {} 
-bullet.cooldown = 0  
-bullet.fireRate = 0.3 -- Adjust Fire Rate Here
-ammo = 10
+bullet.cooldown = 0
 
 function bullet.spawn(x, y, targetX, targetY, speed)
     if bullet.cooldown <= 0 then
-        -- Calculates the direction based on where the Mouse Pointer is --
-        -----------------------------------------------------------------------------------------------------------------
+        -- Calculate direction --
         local angle = math.atan2(targetY - y, targetX - x)
         local velocityX = math.cos(angle) * speed
         local velocityY = math.sin(angle) * speed
@@ -17,39 +16,50 @@ function bullet.spawn(x, y, targetX, targetY, speed)
             y = weapon.y + weapon.sprite:getHeight() * 0.25 * math.sin(angle),
             vx = velocityX,
             vy = velocityY,
-            speed = speed
+            speed = speed,
+            startX = x,  -- Store the starting position
+            startY = y,
+            distanceTraveled = 0, -- Track the distance moved
+            sprite = love.graphics.newImage("assets/PlayerBullet.png") -- Add Bullet Sprite
         })
-        bullet.cooldown = bullet.fireRate -- Reset cooldown
-        ammo = ammo - 1
+
+        bullet.cooldown = player.fire_rate -- Reset cooldown
+        player.ammo = player.ammo - 1
     end
 end
 
 function bullet.update(dt)
     bullet.cooldown = math.max(0, bullet.cooldown - dt) -- Reduce cooldown over time
+
     for i = #bullet.list, 1, -1 do
         local b = bullet.list[i]
         b.x = b.x + b.vx * dt
         b.y = b.y + b.vy * dt
-        
-        -- Removes bullets if they go off-screen (Optional for now)--
-        -------------------------------------------------------------------------------------------------------------
-        if b.x < 0 or b.x > love.graphics.getWidth() or b.y < 0 or b.y > love.graphics.getHeight() then
+
+        -- Calculate distance traveled --
+        local traveled = math.sqrt((b.x - b.startX)^2 + (b.y - b.startY)^2)
+        b.distanceTraveled = traveled
+
+        -- Remove bullet if it has traveled 1500 units
+        if b.distanceTraveled > 1500 then
             table.remove(bullet.list, i)
         end
     end
 end
 
 function bullet.draw()
-    love.graphics.setColor(1, 0, 0)
     for _, b in ipairs(bullet.list) do
-        love.graphics.circle("fill", b.x, b.y, 5)
+        love.graphics.draw(b.sprite, b.x, b.y, 0, 0.5, 0.5, b.sprite:getWidth() / 2, b.sprite:getHeight() / 2)
     end
     love.graphics.setColor(1, 1, 1)
 end
 
 function bullet.reload()
     if love.keyboard.isDown("r") then
-        ammo = 10
+        player.ammo = player.max_ammo
+    end
+    if player.ammo == 0 then
+        player.ammo = player.max_ammo
     end
 end
 

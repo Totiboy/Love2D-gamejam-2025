@@ -9,8 +9,14 @@ function player:load()
     self.sprite = love.graphics.newImage("assets/Cop.png")
     self.width = 50
     self.speed = 200
+    self.fire_rate = 0.4
+    self.bullet_damage = 1
+    self.health = 3
+    self.max_ammo = 12
+    self.bullet_speed = 500
+    self.ammo = self.max_ammo
     self.passives = {}
--- DASH VARIABLES
+-------------------------------------------------------------- DASH VARIABLES
     self.dash_speed = 1400   -- Speed during dash
     self.dash_duration = 0.1 -- How long the dash lasts
     self.dash_cooldown = 0.5 -- Time before dashing again
@@ -19,11 +25,14 @@ function player:load()
     self.is_dashing = false
     self.dir_x = 0
     self.dir_y = 0
--- WADDLE VARIABLES (Slight Tilts for the Illusion of Movement)
+-------------------------------------------------------------- WADDLE VARIABLES (Slight Tilts for the Illusion of Movement)
     self.waddle_timer = 0
     self.waddle_direction = 1 -- Controls the tilt direction
     self.waddle_speed = 10 -- Speed of the waddle effect
     self.waddle_amount = 0.05 -- How much the player tilts
+
+    self.angle = 0
+
 end
 
 function player:move(dt)
@@ -56,6 +65,9 @@ function player:move(dt)
 end
 
 function player:update(dt)
+    local mouseX, mouseY = love.mouse.getPosition()
+    self.angle = math.atan2(mouseY - player.y, mouseX - player.x)
+
     -- Dash Cooldown Timer --
     if self.cooldown_timer > 0 then
         self.cooldown_timer = self.cooldown_timer - dt
@@ -115,11 +127,44 @@ function player:startDash()
     end
 end
 
+function player:applyUpgrades()
+    -- Store base stats to reset before applying upgrades
+    self.baseFireRate = self.baseFireRate or 0.4
+    self.baseBulletSpeed = self.baseBulletSpeed or 500
+    self.baseHealth = self.baseHealth or 3
+    self.baseMaxAmmo = self.baseMaxAmmo or 12
+    self.baseSpeed = self.baseSpeed or 200
+
+    -- Reset stats to base values before applying upgrades
+    self.fire_rate = self.baseFireRate
+    self.bullet_speed = self.baseBulletSpeed
+    self.health = self.baseHealth
+    self.max_ammo = self.baseMaxAmmo
+    self.speed = self.baseSpeed
+
+    -- Apply active upgrades
+    for _, upgrade in ipairs(self.passives) do
+        if upgrade == "Trigger Crank (+Fire Rate)" then
+            self.fire_rate = self.fire_rate - 0.2
+        elseif upgrade == "Long Barrell (+Bullet Speed)" then
+            self.bullet_speed = self.bullet_speed + 250
+        elseif upgrade == "Army Helmet (+Health)" then
+            self.health = self.health + 1
+        elseif upgrade == "Extended Magazine (+Ammo)" then
+            self.max_ammo = self.max_ammo + 8
+        elseif upgrade == "Foregrip (+Movement Speed)" then
+            self.speed = self.speed * 1.5
+        end
+    end
+end
+
+
+
 --this draws the player
 function player:draw()
     love.graphics.setColor(1,1,1)
     -- love.graphics.draw(self.sprite, self.x, self.y, 0, 0.25)
-    love.graphics.draw(self.sprite, self.x, self.y, self.waddle_direction * self.waddle_amount, 0.25, 0.25, self.width / 2, self.height / 2)
+    love.graphics.draw(self.sprite, self.x, self.y, self.waddle_direction * self.waddle_amount, 0.2, 0.2, self.width / 2, self.height / 2)
 end
 
 return player

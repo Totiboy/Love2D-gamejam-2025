@@ -19,7 +19,13 @@ require("player")
 UpgradesManager = {}
 
 --these items are placeholders , you should add actual items instead of these lmao
-UpgradesManager.Items = {"key","ball","rose","shoes","deez","waa"}
+UpgradesManager.Items = {
+    "Trigger Crank (+Fire Rate)",
+    "Long Barrell (+Bullet Speed)",
+    "Army Helmet (+Health)",
+    "Extended Magazine (+Ammo)",
+    "Foregrip (+Movement Speed)"
+}
 
 --a table that has the items that the player will pick from.
 UpgradesManager.ChosenItems = {}
@@ -47,6 +53,7 @@ function UpgradesManager:addtoplayer(num)
     if index ==num and #player.passives<=3 then
         table.insert(player.passives,self.ChosenItems[index])
         table.remove(self.ChosenItems,index)
+        player:applyUpgrades()
     end
    end
 end
