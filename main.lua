@@ -153,5 +153,13 @@ function Firing() -- Replaced love.mousepressed with this so the button can be h
 
         -- Spawn the bullet from the barrel, not the player's center
         bullet.spawn(spawnX, spawnY, mouseX, mouseY, player.bullet_speed)
+        --implementing audio
+    end
+end
+
+function love.mousepressed(x,y,istouch)
+    if istouch == 1 and Game.states.running then
+        local audio = love.audio.newSource("assets/Audio/PistolGunshot.wav","static")
+        love.audio.play(audio)
     end
 end
