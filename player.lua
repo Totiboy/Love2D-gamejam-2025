@@ -9,6 +9,7 @@ function player:load()
     self.sprite = love.graphics.newImage("assets/Cop.png")
     self.width = 50
     self.speed = 200
+    self.passives = {}
 -- DASH VARIABLES
     self.dash_speed = 1400   -- Speed during dash
     self.dash_duration = 0.1 -- How long the dash lasts
@@ -114,7 +115,7 @@ function player:startDash()
     end
 end
 
---this draws the player (who is a white square for now)
+--this draws the player
 function player:draw()
     love.graphics.setColor(1,1,1)
     -- love.graphics.draw(self.sprite, self.x, self.y, 0, 0.25)
