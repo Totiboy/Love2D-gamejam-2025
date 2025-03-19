@@ -73,7 +73,7 @@ function player:update(dt)
         self.cooldown_timer = self.cooldown_timer - dt
     end
 
-    -------------------------------------- Handle Dashing-------------------------------------------------------------
+    -------------------------------------- Handle Dashing -------------------------------------------------------------
     if self.is_dashing then
         self.dash_timer = self.dash_timer - dt
         if self.dash_timer <= 0 then
@@ -127,6 +127,7 @@ function player:startDash()
     end
 end
 
+----------------------------------------------- Item Upgrades ---------------------------------------------------------
 function player:applyUpgrades()
     -- Store base stats to reset before applying upgrades
     self.baseFireRate = self.baseFireRate or 0.4
