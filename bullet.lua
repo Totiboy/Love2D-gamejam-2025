@@ -1,7 +1,8 @@
 bullet = {}
 bullet.list = {} 
 bullet.cooldown = 0  
-bullet.fireRate = 0.3 -- Adjust Fire Rate Here
+bullet.fireRate = 0.4 -- Adjust Fire Rate Here
+bullet.damage = 1 -- For Damage Increase Purposes
 ammo = 10
 
 function bullet.spawn(x, y, targetX, targetY, speed)
@@ -17,7 +18,8 @@ function bullet.spawn(x, y, targetX, targetY, speed)
             y = weapon.y + weapon.sprite:getHeight() * 0.25 * math.sin(angle),
             vx = velocityX,
             vy = velocityY,
-            speed = speed
+            speed = speed,
+            sprite = love.graphics.newImage("assets/PlayerBullet.png") -- Add Bullet Sprite
         })
         bullet.cooldown = bullet.fireRate -- Reset cooldown
         ammo = ammo - 1
@@ -40,15 +42,18 @@ function bullet.update(dt)
 end
 
 function bullet.draw()
-    love.graphics.setColor(1, 0, 0)
     for _, b in ipairs(bullet.list) do
-        love.graphics.circle("fill", b.x, b.y, 5)
+        -- love.graphics.circle("fill", b.x, b.y, 5)
+        love.graphics.draw(b.sprite, b.x, b.y, 0, 0.5, 0.5, b.sprite:getWidth() / 2, b.sprite:getHeight() / 2)
     end
     love.graphics.setColor(1, 1, 1)
 end
 
 function bullet.reload()
     if love.keyboard.isDown("r") then
+        ammo = 10
+    end
+    if ammo == 0 then
         ammo = 10
     end
 end

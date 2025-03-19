@@ -19,7 +19,13 @@ require("player")
 UpgradesManager = {}
 
 --these items are placeholders , you should add actual items instead of these lmao
-UpgradesManager.Items = {"key","ball","rose","shoes","deez","waa"}
+UpgradesManager.Items = {
+    "Trigger Crank",
+    "Long Barrell",
+    "Army Helmet",
+    "Extended Magazine",
+    "Foregrip"
+}
 
 --a table that has the items that the player will pick from.
 UpgradesManager.ChosenItems = {}
