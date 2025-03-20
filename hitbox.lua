@@ -1,5 +1,6 @@
 Hitbox = {}
 
+--make a new hitbox object
 function Hitbox.new(x,y,width,height)
     local instance = setmetatable({}, {__index = Hitbox})
     instance.x = x
@@ -9,6 +10,7 @@ function Hitbox.new(x,y,width,height)
     return instance
 end
 
+--make the hitbox detect the collision with a hurtbox
 function Hitbox:detectcollision(hurtbox)
     if(self.x < hurtbox.x + hurtbox.width and
     self.x + self.width > hurtbox.x and
@@ -19,6 +21,7 @@ function Hitbox:detectcollision(hurtbox)
 
 end
 
+--draw the hitbox if you wish to
 function Hitbox:draw()
     love.graphics.setColor(1,0,0)
     love.graphics.rectangle("line",self.x,self.y,self.width,self.height)

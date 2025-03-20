@@ -8,7 +8,6 @@ gun = require("weapon")
 PICKTHEMITEMS = require("UpgradesManager")
 Game = Game()
 enemy = require("enemy")
-require("hitbox")
 
 
 
