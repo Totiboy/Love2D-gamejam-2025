@@ -1,3 +1,4 @@
+Hurtbox = require("hurtbox")
 player = {}
 
 --loading basic player stats
@@ -16,6 +17,7 @@ function player:load()
     self.bullet_speed = 500
     self.ammo = self.max_ammo
     self.passives = {}
+    self.hurtbox = HurtBox.new(self.x,self.y,self.sprite:getWidth()/6,self.sprite:getHeight()/6)
 -------------------------------------------------------------- DASH VARIABLES
     self.dash_speed = 1400   -- Speed during dash
     self.dash_duration = 0.1 -- How long the dash lasts
@@ -62,6 +64,7 @@ function player:move(dt)
 ---this sets up the speed to correspond with the direction of the movement and deltatime
     self.x = self.x + self.speed * d.x * dt
     self.y = self.y + self.speed * d.y * dt
+    self.hurtbox:update(self.x,self.y)
 end
 
 function player:update(dt)
@@ -165,6 +168,7 @@ function player:draw()
     love.graphics.setColor(1,1,1)
     -- love.graphics.draw(self.sprite, self.x, self.y, 0, 0.25)
     love.graphics.draw(self.sprite, self.x, self.y, self.waddle_direction * self.waddle_amount, 0.2, 0.2, self.width / 2, self.height / 2)
+    self.hurtbox:draw()
 end
 
 return player
