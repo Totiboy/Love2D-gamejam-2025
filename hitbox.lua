@@ -10,13 +10,13 @@ function Hitbox.new(x,y,width,height)
     return instance
 end
 
---make the hitbox detect the collision with a hurtbox
+--make the hitbox detect the collision with a hurtbox , if there is collision , return true
 function Hitbox:detectcollision(hurtbox)
     if(self.x < hurtbox.x + hurtbox.width and
     self.x + self.width > hurtbox.x and
     self.y <hurtbox.y + hurtbox.height and
     self.y + self.height > hurtbox.y) then
-        print("gottem!")
+        return true
     end
 
 end

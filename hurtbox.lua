@@ -10,7 +10,7 @@ function HurtBox.new(x,y,width,height)
     return instance
 end
 
---detects collision with a given hitbox
+--detects collision with a given hitbox , if there is collision , return true
 function HurtBox:detectcollision(hitbox)
     if(self.x < hitbox.x + hitbox.width and
     self.x + self.width > hitbox.x and

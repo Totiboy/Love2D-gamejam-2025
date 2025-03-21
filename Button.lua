@@ -1,14 +1,15 @@
 local Button = {}
 
 -- instantiating a new button
-function Button.new(x, y, width, height, text)
+function Button.new(x, y, width, height, text,fontscale)
     local instance = setmetatable({}, {__index = Button})
     instance.x = x
     instance.y = y
     instance.width = width
     instance.height = height
     instance.text = text
-    instance.font = love.graphics.getFont()
+    instance.fontscale = fontscale
+    instance.font = love.graphics.newFont("assets/Fonts/alagard.ttf",instance.fontscale)
     return instance
 end
 
@@ -17,6 +18,7 @@ function Button:draw()
     love.graphics.setColor(1, 1, 1)
     love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
     love.graphics.setColor(0, 0, 0)
+    love.graphics.setFont(self.font)
     love.graphics.printf(self.text, self.x, (self.y+self.height/2) - self.font:getHeight()/2, self.width, "center")
 end
 
