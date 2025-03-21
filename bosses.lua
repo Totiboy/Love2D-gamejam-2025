@@ -7,7 +7,7 @@ function TwoFacedDiamante()
         health = 100,
         baseSpeed = 300,
         speed = 300,
-        fireRate = 0.3,
+        fireRate = 0.5,
         bulletSpeed = 350,
         sprite = love.graphics.newImage("assets/Bosses/Two-Faced Diamante.png"),
         gunSprite = love.graphics.newImage("assets/Bosses/Uzi.png"),
@@ -167,7 +167,7 @@ function TwoFacedDiamante()
     function boss:update(dt)
         if self.health <= 0 then
             self.alive = false
-            waves:nextState()
+            waves:nextWave()
         end
         if not self.specialAttack then
             self:movement(dt)
@@ -192,23 +192,5 @@ function TwoFacedDiamante()
     return boss
 end
 
-        -- Waddle Variables
-        boss.waddleTimer = 0
-        boss.waddleDirection = 1
-        boss.waddleSpeed = 10
-        boss.waddleAmount = 0.05
-        
-        function boss:update(dt)
-            
-                -- Waddle Effect
-                self.waddleTimer = self.waddleTimer + dt * self.waddleSpeed
-                if self.waddleTimer >= 1 then
-                    self.waddleTimer = 0
-                    self.waddleDirection = -self.waddleDirection
-                end
-            end
-        end
-    end
-end
 
 return bosses

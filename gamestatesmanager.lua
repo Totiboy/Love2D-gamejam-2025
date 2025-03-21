@@ -9,7 +9,10 @@ function Game()
         menu = false,
         running = false,
         pause = false,
-        selection = false
+        selection = false,
+        firstselection = false,
+        boss = false,
+        finalboss = false
     },
 
     --and this function handles the switching between states by checking whether the state you pass in the parameter corresponds
@@ -19,7 +22,9 @@ function Game()
         self.states.running = state == "running"
         self.states.pause = state == "pause"
         self.states.selection = state == "selection"
-        
+        self.states.boss = state == "boss"
+        self.states.firstselection = state == "firstselection"
+        self.states.finalboss = state == "finalboss"
     end
         } 
 end

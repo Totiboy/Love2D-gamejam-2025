@@ -8,6 +8,7 @@ gun = require("weapon")
 PICKTHEMITEMS = require("UpgradesManager")
 Game = Game()
 enemy = require("enemy")
+waves = require("waves")
 
 
 
@@ -43,7 +44,8 @@ function love.update(dt)
     --menu state logic
     if Game.states.menu then
         if StartButton:isClicked() then
-            Game:changestates("selection")
+            waves.startWave()
+            player:load()
         end
     end
 
@@ -52,27 +54,61 @@ function love.update(dt)
         player:move(dt)
         player:update(dt)
         gun:update()
-        Firing() -- Replaced mousepressed with this
-        bullet.reload() -- In Bullet.lua
+        Firing()
+        bullet.reload() 
         bullet.update(dt)
+    
+        -- ✅ Enemy Updates Only in Running State (NOT Boss)
         enemy:update(dt)
         enemy:updateBullets(dt)
-
-        -- Enemy spawning logic (Fixed)
+    
+        -- ✅ Enemy Spawning Logic (Only in Running)
         enemySpawnTimer = enemySpawnTimer + dt
         if enemySpawnTimer >= enemySpawnInterval then
             enemy.spawn()
             enemySpawnTimer = 0  -- Reset timer
         end
-    end
+    elseif Game.states.boss then
+        -- ✅ No enemy updates, bullets, or spawns during boss fights
+        bosses:update(dt)  -- Only boss logic runs
+    end    
     
-    --pause state logic
+---------------------------------------------------------------------------------------------Pause state logic
     if Game.states.pause then
         if ResumeButton:isClicked() then
             Game:changestates("running")
         end
     end
 
+    if Game.states.firstselection then
+
+        --Did I copy the horrible code again? absolutely , do I care? fuck no.
+        PICKTHEMITEMS:Load()
+     
+        
+        if selectbutton1:isClicked() then
+            PICKTHEMITEMS:addtoplayer(1)
+            PICKTHEMITEMS:Recover()
+            
+            --Game:changestates("running")
+            waves:nextWave()
+        end
+        if selectbutton2:isClicked() then
+            PICKTHEMITEMS:addtoplayer(2)
+            PICKTHEMITEMS:Recover()
+
+            --Game:changestates("running")
+            waves:nextWave()
+        end
+        if selectbutton3:isClicked() then
+            PICKTHEMITEMS:addtoplayer(3)
+            PICKTHEMITEMS:Recover()
+
+            --Game:changestates("running")
+            waves:nextWave()
+        end
+    end
+    
     --selection state
     if Game.states.selection then
 
@@ -84,20 +120,23 @@ function love.update(dt)
             PICKTHEMITEMS:addtoplayer(1)
             PICKTHEMITEMS:Recover()
             
-            Game:changestates("running")
+            --Game:changestates("running")
+            waves:nextWave()
         end
         if selectbutton2:isClicked() then
             PICKTHEMITEMS:addtoplayer(2)
             PICKTHEMITEMS:Recover()
-            Game:changestates("running")
+
+            --Game:changestates("running")
+            waves:nextWave()
         end
         if selectbutton3:isClicked() then
             PICKTHEMITEMS:addtoplayer(3)
             PICKTHEMITEMS:Recover()
-            Game:changestates("running")
-        end
-    
-        
+
+            --Game:changestates("running")
+            waves:nextWave()
+        end 
     end
 end
 
@@ -138,7 +177,7 @@ function love.draw()
     end
 
     --selection state
-    if Game.states.selection then
+    if Game.states.selection or Game.states.firstselection then
         PICKTHEMITEMS:Draw()
         selectbutton1:draw()
         selectbutton2:draw()
