@@ -44,7 +44,7 @@ function love.update(dt)
         if StartButton:isClicked() then
             Game:changestates("selection")
             player:load()
-            PICKTHEMITEMS.cancall = true
+            
         end
     end
 
@@ -80,7 +80,7 @@ function love.update(dt)
 
     --selection state
     if Game.states.selection then
-
+        
         --horrible code? absolutely , do I care? fuck no.
         PICKTHEMITEMS:Load()
         
