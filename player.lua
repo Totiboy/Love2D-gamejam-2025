@@ -10,7 +10,7 @@ function player:load()
     self.width = 50
     self.speed = 200
     self.fire_rate = 0.4
-    self.bullet_damage = 1
+    self.damage = 1
     self.health = 3
     self.max_ammo = 12
     self.bullet_speed = 500
@@ -19,7 +19,7 @@ function player:load()
 -------------------------------------------------------------- DASH VARIABLES
     self.dash_speed = 1400   -- Speed during dash
     self.dash_duration = 0.1 -- How long the dash lasts
-    self.dash_cooldown = 0.5 -- Time before dashing again
+    self.dash_cooldown = 1 -- Time before dashing again
     self.dash_timer = 0
     self.cooldown_timer = 0
     self.is_dashing = false
@@ -91,12 +91,26 @@ function player:update(dt)
     if love.keyboard.isDown("space") and self.cooldown_timer <= 0 then
         self:startDash()
     end
+
+    function playFootsteps()
+        local sounds = {
+            love.audio.newSource("assets/Audio/Footstep1.wav", "static"),
+            love.audio.newSource("assets/Audio/Footstep2.wav", "static"),
+            love.audio.newSource("assets/Audio/Footstep3.wav", "static"),
+            love.audio.newSource("assets/Audio/Footstep4.wav", "static")
+        }
+        local randomIndex = love.math.random(1, #sounds)
+        local sound = sounds[randomIndex]
+        sound:setVolume(0.01)
+        sound:play()
+    end
 -------------------------------------------- Waddle Movement ---------------------------------------------------------
     if d.x ~= 0 or d.y ~= 0 then -- Only waddle when moving
         self.waddle_timer = self.waddle_timer + dt * self.waddle_speed
         if self.waddle_timer >= 1 then
             self.waddle_timer = 0
             self.waddle_direction = -self.waddle_direction -- Swap tilt direction
+            playFootsteps()
         end
     end
 end

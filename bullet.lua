@@ -10,6 +10,9 @@ function bullet.spawn(x, y, targetX, targetY, speed)
         local angle = math.atan2(targetY - y, targetX - x)
         local velocityX = math.cos(angle) * speed
         local velocityY = math.sin(angle) * speed
+        local audio = love.audio.newSource("assets/Audio/PistolGunshot.wav","static")
+        audio:setVolume(0.04)
+        love.audio.play(audio)
 
         table.insert(bullet.list, {
             x = weapon.x + weapon.sprite:getWidth() * 0.25 * math.cos(angle),

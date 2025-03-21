@@ -67,11 +67,11 @@ function enemy:update(dt)
     -- Avoidance Zone Variables
 local avoidanceActive = false
 local avoidanceTimer = 0
-local avoidanceDuration = 5 -- Duration before toggling (Timer for On and Off basically)
+local avoidanceDuration = 2 -- Duration before toggling (Timer for On and Off basically)
 
 local function avoidanceZone(e, dt)
     local centerX, centerY = love.graphics.getWidth() / 2, love.graphics.getHeight() / 2
-    local avoidRadius = 350 -- Size of the avoidance area
+    local avoidRadius = 1000 -- Size of the avoidance area
 
     -- Toggle the avoidance zone every few seconds
     avoidanceTimer = avoidanceTimer + dt
@@ -202,6 +202,9 @@ end
             e.shootingTimer = e.shootingTimer + dt
             if e.shootingTimer >= 1.5 then
                 enemy:shoot(e)
+                local audio = love.audio.newSource("assets/Audio/EnemyGunshot.wav","static")
+                audio:setVolume(0.014)
+                love.audio.play(audio)
                 e.bulletsFired = e.bulletsFired + 1
                 e.shootingTimer = 0
             end
