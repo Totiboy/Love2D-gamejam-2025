@@ -16,6 +16,7 @@ function love.load()
     TITLE  = "Operation - Quad-Father"
     titlefont = love.graphics.newFont("assets/Fonts/ka1.ttf",40)
     normalfont = love.graphics.newFont("assets/Fonts/alagard.ttf",20)
+    healthsprite = love.graphics.newImage("assets/UI/PlayerHP.png")
     StartButton = Button.new(love.graphics.getWidth()/2-100,love.graphics.getHeight()/2+100,200,100,"start",30)
     ResumeButton = Button.new(10,love.graphics.getHeight()-110,200,100,"Resume",20)
     selectbutton1 = Button.new(200,500,200,100,"Select 1",20)
@@ -129,6 +130,11 @@ function love.draw()
         love.graphics.setColor(1,1,1)
         love.graphics.setFont(normalfont)
         love.graphics.print("AMMO :"..player.ammo, 10, love.graphics.getHeight() - 100,0,4)
+
+        --draw the health UI
+        for i = 1, player.health, 1 do
+            love.graphics.draw(healthsprite,i*50,20,0,.45)
+        end
        
         
     end

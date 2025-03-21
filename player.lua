@@ -3,8 +3,8 @@ player = {}
 
 --loading basic player stats
 function player:load()
-    self.x = 100
-    self.y = 0
+    self.x = 500
+    self.y = 500
     self.health = 3
     self.height = 100
     self.sprite = love.graphics.newImage("assets/Cop (Fixed Export).png")
