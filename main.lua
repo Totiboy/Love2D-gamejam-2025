@@ -10,17 +10,22 @@ Game = Game()
 enemy = require("enemy")
 
 
+
 --loading the game's necessary stuff
 function love.load()
-    StartButton = Button.new(love.graphics.getWidth()/2,love.graphics.getHeight()/2,200,100,"start")
-    ResumeButton = Button.new(10,love.graphics.getHeight()-110,200,100,"Resume")
-    selectbutton1 = Button.new(200,500,200,100,"Select 1")
-    selectbutton2 = Button.new(200+300,500,200,100,"Select 2")
-    selectbutton3 = Button.new(200+300+300,500,200,100,"Select 3")
+    TITLE  = "Operation: Quad-Father."
+    titlefont = love.graphics.newFont("assets/Fonts/ka1.ttf",40)
+    normalfont = love.graphics.newFont("assets/Fonts/alagard.ttf",20)
+    StartButton = Button.new(love.graphics.getWidth()/2-100,love.graphics.getHeight()/2+100,200,100,"start",30)
+    ResumeButton = Button.new(10,love.graphics.getHeight()-110,200,100,"Resume",20)
+    selectbutton1 = Button.new(200,500,200,100,"Select 1",20)
+    selectbutton2 = Button.new(200+300,500,200,100,"Select 2",20)
+    selectbutton3 = Button.new(200+300+300,500,200,100,"Select 3",20)
+
     
     
     --this line makes it so the game starts with the menu state.
-    Game:changestates("selection")
+    Game:changestates("menu")
     --------
     --this of course loads the player.
     player:load()
@@ -101,24 +106,34 @@ function love.draw()
 
     --the menu state
     if Game.states.menu then
+        love.graphics.setFont(titlefont)
+        love.graphics.setColor(1,1,1)
+        love.graphics.printf(TITLE,love.graphics.getWidth()/4,love.graphics.getHeight()/3,1000,"left")
+        
         StartButton:draw()
+        love.graphics.setFont(normalfont)
     end
 
     --the running state
     if Game.states.running then
+        
         player:draw()
         bullet.draw()
         weapon:draw()
         enemy:draw() -- ✅ Make sure enemy.draw() exists in enemy.lua
         --drawing the ammo displayer
         love.graphics.setColor(1,1,1)
+        love.graphics.setFont(normalfont)
         love.graphics.print("AMMO :"..player.ammo, 10, love.graphics.getHeight() - 100,0,4)
+       
+        
     end
 
     --the pause state
     if Game.states.pause then
         love.graphics.setColor(1,1,1)
-        love.graphics.print("PAUSED",300 ,210,0,10)
+        love.graphics.setFont(titlefont)
+        love.graphics.print("PAUSED",500 ,300,0,2,2)
         ResumeButton:draw()
     end
 
