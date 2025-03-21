@@ -96,7 +96,6 @@ end
 function bullet.draw()
     for _, b in ipairs(bullet.list) do
         love.graphics.draw(b.sprite, b.x, b.y, 0, 0.5, 0.5, b.sprite:getWidth() / 2, b.sprite:getHeight() / 2)
-        b.hitbox:draw()
     end
     love.graphics.setColor(1, 1, 1)
 end

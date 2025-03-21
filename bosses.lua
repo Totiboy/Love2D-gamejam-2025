@@ -1,5 +1,34 @@
 local bosses = {}
-local enemy = require("enemy") -- Reusing general enemy movement AI
+local enemy = require("enemy")  -- Keep this only if needed
+
+-- Store boss functions
+local bossFunctions = {
+    [1] = TwoFacedDiamante,  -- Ensure this function exists
+    [2] = LucaBoss           -- Ensure this function exists
+}
+
+-- Function to Spawn Bosses by Number
+function bosses:spawnBoss(bossIndex)
+    if bossFunctions[bossIndex] then
+        bosses.currentBoss = bossFunctions[bossIndex]()
+    end
+end
+
+-- Update function for boss state
+function bosses:update(dt)
+    if bosses.currentBoss and bosses.currentBoss.alive then
+        bosses.currentBoss:update(dt)
+    end
+end
+
+-- Draw function for boss state
+function bosses:draw()
+    if bosses.currentBoss and bosses.currentBoss.alive then
+        bosses.currentBoss:draw()
+    end
+end
+
+
 
 function TwoFacedDiamante()
     local boss = {
@@ -7,7 +36,7 @@ function TwoFacedDiamante()
         health = 100,
         baseSpeed = 300,
         speed = 300,
-        fireRate = 0.3,
+        fireRate = 0.3,  -- Increased to match Uzi's fire rate
         bulletSpeed = 350,
         sprite = love.graphics.newImage("assets/Bosses/Two-Faced Diamante.png"),
         gunSprite = love.graphics.newImage("assets/Bosses/Uzi.png"),
@@ -24,191 +53,171 @@ function TwoFacedDiamante()
 
     -- General AI: Movement
     function boss:movement(dt)
-        local dx, dy = player.x - self.x, player.y - self.y
+        local dx, dy = player.x - boss.x, player.y - boss.y
         local distance = math.sqrt(dx^2 + dy^2)
 
-        if not self.specialAttack then
+        if not boss.specialAttack then
             if distance > 400 then
-                self.x = self.x + (dx / distance) * self.speed * dt * 100
-                self.y = self.y + (dy / distance) * self.speed * dt * 100
+                boss.x = boss.x + (dx / distance) * boss.speed * dt * 100
+                boss.y = boss.y + (dy / distance) * boss.speed * dt * 100
             elseif distance < 200 then
-                self.x = self.x - (dx / distance) * self.speed * dt * 50
-                self.y = self.y - (dy / distance) * self.speed * dt * 50
+                boss.x = boss.x - (dx / distance) * boss.speed * dt * 50
+                boss.y = boss.y - (dy / distance) * boss.speed * dt * 50
             end
         end
     end
 
     -- General AI: Shooting
-    function boss:shoot(dt)
-        if not self.specialAttack and self.attackTimer <= 0 then
+    function boss:shoot()
+        if not boss.specialAttack then
             local spread = math.rad(math.random(-10, 10))
             local bullet = {
-                x = self.x,
-                y = self.y,
-                angle = math.atan2(player.y - self.y, player.x - self.x) + spread,
-                speed = self.bulletSpeed,
-                sprite = self.bulletSprite
+                x = boss.x,
+                y = boss.y,
+                dx = math.cos(math.atan2(player.y - boss.y, player.x - boss.x) + spread) * boss.bulletSpeed,
+                dy = math.sin(math.atan2(player.y - boss.y, player.x - boss.x) + spread) * boss.bulletSpeed,
+                sprite = boss.bulletSprite
             }
-            table.insert(self.bullets, bullet)
-            self.attackTimer = self.fireRate
-        else
-            self.attackTimer = self.attackTimer - dt
+            table.insert(boss.bullets, bullet)
         end
     end
 
     -- Special Attack Handler
     function boss:triggerSpecialAttack()
-        self.specialAttack = true
-        local attackType = math.random(1, self.halfHealthTriggered and 4 or 3)
+        boss.specialAttack = true
+        local attackType = math.random(1, boss.halfHealthTriggered and 4 or 3)
         if attackType == 1 then
-            self:attack1()
+            boss:attack1()
         elseif attackType == 2 then
-            self:attack2()
+            boss:attack2()
         elseif attackType == 3 then
-            self:attack3()
+            boss:attack3()
         elseif attackType == 4 then
-            self:bigAttack()
+            boss:bigAttack()
         end
     end
 
     -- ATK #1: Rush and Rapid Fire
     function boss:attack1()
-        self.speed = 600
-        while math.sqrt((self.x - player.x)^2 + (self.y - player.y)^2) > 100 do
-            local dx, dy = player.x - self.x, player.y - self.y
-            self.x = self.x + dx * 0.1
-            self.y = self.y + dy * 0.1
+        boss.speed = 600
+        while math.sqrt((boss.x - player.x)^2 + (boss.y - player.y)^2) > 100 do
+            local dx, dy = player.x - boss.x, player.y - boss.y
+            boss.x = boss.x + dx * 0.1
+            boss.y = boss.y + dy * 0.1
         end
-        self.speed = 100
-        for i = 1, 10 do
-            self:shoot(0)
+        boss.speed = 100
+        for _ = 1, 10 do
+            boss:shoot()
         end
-        self:resetStats()
+        boss:resetStats()
     end
 
     -- ATK #2: Wide Bullet Spam
     function boss:attack2()
-        self.speed = 100
+        boss.speed = 100
         for i = -5, 5 do
-            for j = 1, 3 do
+            for _ = 1, 3 do
                 local bullet = {
-                    x = self.x,
-                    y = self.y,
-                    angle = math.rad(i * 10) + math.random(-5, 5),
-                    speed = self.bulletSpeed,
-                    sprite = self.bulletSprite
+                    x = boss.x,
+                    y = boss.y,
+                    dx = math.cos(math.rad(i * 10)) * boss.bulletSpeed,
+                    dy = math.sin(math.rad(i * 10)) * boss.bulletSpeed,
+                    sprite = boss.bulletSprite
                 }
-                table.insert(self.bullets, bullet)
+                table.insert(boss.bullets, bullet)
             end
         end
-        self:resetStats()
+        boss:resetStats()
     end
 
     -- ATK #3: Leave & Surprise Attack
     function boss:attack3()
-        -- Leave screen in a random direction
-        local exitSide = math.random(1, 4)
-        if exitSide == 1 then -- Left
-            self.x, self.y = -100, math.random(0, love.graphics.getHeight())
-        elseif exitSide == 2 then -- Right
-            self.x, self.y = love.graphics.getWidth() + 100, math.random(0, love.graphics.getHeight())
-        elseif exitSide == 3 then -- Top
-            self.x, self.y = math.random(0, love.graphics.getWidth()), -100
-        elseif exitSide == 4 then -- Bottom
-            self.x, self.y = math.random(0, love.graphics.getWidth()), love.graphics.getHeight() + 100
-        end
-        
         -- Instantly reappear outside the screen near the player
         local reappearOffset = 150
         local spawnSide = math.random(1, 4)
         if spawnSide == 1 then -- Left
-            self.x, self.y = player.x - reappearOffset, player.y
+            boss.x, boss.y = player.x - reappearOffset, player.y
         elseif spawnSide == 2 then -- Right
-            self.x, self.y = player.x + reappearOffset, player.y
+            boss.x, boss.y = player.x + reappearOffset, player.y
         elseif spawnSide == 3 then -- Top
-            self.x, self.y = player.x, player.y - reappearOffset
+            boss.x, boss.y = player.x, player.y - reappearOffset
         elseif spawnSide == 4 then -- Bottom
-            self.x, self.y = player.x, player.y + reappearOffset
+            boss.x, boss.y = player.x, player.y + reappearOffset
         end
-        
-        self.speed = 500
-        for i = 1, 10 do
-            self:shoot(0)
-        end
-        self:resetStats()
-    end
 
+        boss.speed = 500
+        for _ = 1, 10 do
+            boss:shoot()
+        end
+        boss:resetStats()
+    end
 
     -- Big ATK: 100 Bullet Spiral
     function boss:bigAttack()
-        self.x = love.graphics.getWidth() / 2
-        self.y = love.graphics.getHeight() / 2
+        boss.x = love.graphics.getWidth() / 2
+        boss.y = love.graphics.getHeight() / 2
         for i = 1, 100 do
             local bullet = {
-                x = self.x,
-                y = self.y,
-                angle = math.rad(i * 3.6),
-                speed = self.bulletSpeed,
-                sprite = self.bulletSprite
+                x = boss.x,
+                y = boss.y,
+                dx = math.cos(math.rad(i * 3.6)) * boss.bulletSpeed,
+                dy = math.sin(math.rad(i * 3.6)) * boss.bulletSpeed,
+                sprite = boss.bulletSprite
             }
-            table.insert(self.bullets, bullet)
+            table.insert(boss.bullets, bullet)
         end
-        self:resetStats()
+        boss:resetStats()
     end
 
     -- Reset Stats After Special Attack
     function boss:resetStats()
-        self.speed = self.baseSpeed
-        self.specialAttack = false
-        self.attackTimer = math.random(8, 13)
+        boss.speed = boss.baseSpeed
+        boss.specialAttack = false
+        boss.attackTimer = math.random(8, 13)
     end
 
     -- Update Function
     function boss:update(dt)
-        if self.health <= 0 then
-            self.alive = false
-            waves:nextState()
+        if boss.health <= 0 then
+            boss.alive = false
+            waves:nextWave()
         end
-        if not self.specialAttack then
-            self:movement(dt)
-            self:shoot(dt)
+        if not boss.specialAttack then
+            boss:movement(dt)
+            boss:shoot()
         end
-        if self.attackTimer <= 0 then
-            self:triggerSpecialAttack()
+        if boss.attackTimer <= 0 then
+            boss:triggerSpecialAttack()
         else
-            self.attackTimer = self.attackTimer - dt
+            boss.attackTimer = boss.attackTimer - dt
         end
-        if self.health <= 50 and not self.halfHealthTriggered then
-            self.halfHealthTriggered = true
+        if boss.health <= 50 and not boss.halfHealthTriggered then
+            boss.halfHealthTriggered = true
+        end
+
+        -- Move bullets
+        for i = #boss.bullets, 1, -1 do
+            local b = boss.bullets[i]
+            b.x = b.x + b.dx * dt
+            b.y = b.y + b.dy * dt
+            if b.x < 0 or b.x > love.graphics.getWidth() or b.y < 0 or b.y > love.graphics.getHeight() then
+                table.remove(boss.bullets, i)
+            end
         end
     end
 
     -- Draw Function
     function boss:draw()
-        love.graphics.draw(self.sprite, self.x, self.y, self.gunAngle, 0.3, 0.3, self.sprite:getWidth() / 2, self.sprite:getHeight() / 2)
-        love.graphics.draw(self.gunSprite, self.x, self.y, self.gunAngle, 0.2, 0.2, self.gunSprite:getWidth() / 2, self.gunSprite:getHeight() / 2)
+        love.graphics.draw(boss.sprite, boss.x, boss.y, boss.gunAngle, 0.3, 0.3, boss.sprite:getWidth() / 2, boss.sprite:getHeight() / 2)
+        love.graphics.draw(boss.gunSprite, boss.x, boss.y, boss.gunAngle, 0.2, 0.2, boss.gunSprite:getWidth() / 2, boss.gunSprite:getHeight() / 2)
+
+        -- Draw Bullets
+        for _, b in ipairs(boss.bullets) do
+            love.graphics.draw(b.sprite, b.x, b.y, 0, 0.5, 0.5, b.sprite:getWidth() / 2, b.sprite:getHeight() / 2)
+        end
     end
 
     return boss
-end
-
-        -- Waddle Variables
-        boss.waddleTimer = 0
-        boss.waddleDirection = 1
-        boss.waddleSpeed = 10
-        boss.waddleAmount = 0.05
-        
-        function boss:update(dt)
-            
-                -- Waddle Effect
-                self.waddleTimer = self.waddleTimer + dt * self.waddleSpeed
-                if self.waddleTimer >= 1 then
-                    self.waddleTimer = 0
-                    self.waddleDirection = -self.waddleDirection
-                end
-            end
-        end
-    end
 end
 
 return bosses

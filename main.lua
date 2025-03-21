@@ -8,7 +8,8 @@ gun = require("weapon")
 PICKTHEMITEMS = require("UpgradesManager")
 Game = Game()
 enemy = require("enemy")
-
+waves = require("waves")
+bosses = require("bosses")
 
 
 --loading the game's necessary stuff
@@ -42,9 +43,9 @@ function love.update(dt)
     --menu state logic
     if Game.states.menu then
         if StartButton:isClicked() then
-            Game:changestates("selection")
+            waves:startWave()
             player:load()
-            
+            enemy.clearEnemies()  -- ✅ Ensure enemies reset
         end
     end
 
@@ -53,14 +54,19 @@ function love.update(dt)
         player:move(dt)
         player:update(dt)
         gun:update()
-        Firing() -- Replaced mousepressed with this
-        bullet.reload() -- In Bullet.lua
+        Firing()
+        bullet.reload() 
         bullet.update(dt)
+      
+    
+        -- ✅ Enemy Updates Only in Running State (NOT Boss)
         enemy:update(dt)
         enemy:updateBullets(dt)
         --killing the player
         if player.isded then
             Game:changestates("menu")
+            enemy.clearEnemies()
+            player:load()
         end
 
         -- Enemy spawning logic (Fixed)
@@ -69,87 +75,89 @@ function love.update(dt)
             enemy.spawn()
             enemySpawnTimer = 0  -- Reset timer
         end
+
+    elseif Game.states.boss then
+        -- Boss state: player functions as normal (mirrors running state)...
+        player:move(dt)
+        player:update(dt)
+        gun:update()
+        Firing()
+        bullet.reload()
+        bullet.update(dt)
+        waves:boss(dt)
+        
+        -- Check if player dies in boss state too
+        if player.isded then
+            Game:changestates("menu")
+            player:load()
+        end
     end
     
-    --pause state logic
+---------------------------------------------------------------------------------------------Pause state logic
     if Game.states.pause then
         if ResumeButton:isClicked() then
             Game:changestates("running")
         end
     end
 
-    --selection state
-    if Game.states.selection then
-        
-        --horrible code? absolutely , do I care? fuck no.
+    if Game.states.firstselection or Game.states.selection then
         PICKTHEMITEMS:Load()
-        
-     
-        
         if selectbutton1:isClicked() then
             PICKTHEMITEMS:addtoplayer(1)
             PICKTHEMITEMS:Recover()
-            
-            Game:changestates("running")
-        end
-        if selectbutton2:isClicked() then
+            waves:nextWave()
+        elseif selectbutton2:isClicked() then
             PICKTHEMITEMS:addtoplayer(2)
             PICKTHEMITEMS:Recover()
-            Game:changestates("running")
-        end
-        if selectbutton3:isClicked() then
+            waves:nextWave()
+        elseif selectbutton3:isClicked() then
             PICKTHEMITEMS:addtoplayer(3)
             PICKTHEMITEMS:Recover()
-            Game:changestates("running")
+            waves:nextWave()
         end
-    
-        
     end
 end
 
 --this displays different stuff on the screen based on the game state.
 function love.draw()
-
-    --the menu state
     if Game.states.menu then
         love.graphics.setFont(titlefont)
         love.graphics.setColor(1,1,1)
-        love.graphics.printf(TITLE,love.graphics.getWidth()/4,love.graphics.getHeight()/3,1000,"left")
-        
+        love.graphics.printf(TITLE, love.graphics.getWidth()/4, love.graphics.getHeight()/3, 1000, "left")
         StartButton:draw()
         love.graphics.setFont(normalfont)
-    end
-
-    --the running state
-    if Game.states.running then
-        
+    elseif Game.states.running then
         player:draw()
         bullet.draw()
         weapon:draw()
-        enemy:draw() -- ✅ Make sure enemy.draw() exists in enemy.lua
-        --drawing the ammo displayer
+        enemy:draw()  -- Draws enemy waves
+        -- UI: Ammo, Health, etc.
         love.graphics.setColor(1,1,1)
         love.graphics.setFont(normalfont)
-        love.graphics.print("AMMO :"..player.ammo, 10, love.graphics.getHeight() - 100,0,4)
-
-        --draw the health UI
-        for i = 1, player.health, 1 do
-            love.graphics.draw(healthsprite,i*50,20,0,.45)
+        love.graphics.print("AMMO: " .. player.ammo, 10, love.graphics.getHeight() - 100, 0, 4)
+        for i = 1, player.health do
+            love.graphics.draw(healthsprite, i * 50, 20, 0, .45)
         end
-       
-        
-    end
-
-    --the pause state
-    if Game.states.pause then
+    elseif Game.states.boss then
+        player:draw()
+        bullet.draw()
+        weapon:draw()
+        if bosses.currentBoss and bosses.currentBoss.alive then
+            bosses.currentBoss:draw()  -- Draw the boss instead of enemies
+        end
+        -- UI: Ammo, Health, etc.
+        love.graphics.setColor(1,1,1)
+        love.graphics.setFont(normalfont)
+        love.graphics.print("AMMO: " .. player.ammo, 10, love.graphics.getHeight() - 100, 0, 4)
+        for i = 1, player.health do
+            love.graphics.draw(healthsprite, i * 50, 20, 0, .45)
+        end
+    elseif Game.states.pause then
         love.graphics.setColor(1,1,1)
         love.graphics.setFont(titlefont)
-        love.graphics.print("PAUSED",500 ,300,0,2,2)
+        love.graphics.print("PAUSED", 500, 300, 0, 2, 2)
         ResumeButton:draw()
-    end
-
-    --selection state
-    if Game.states.selection then
+    elseif Game.states.firstselection or Game.states.selection then
         PICKTHEMITEMS:Draw()
         selectbutton1:draw()
         selectbutton2:draw()
