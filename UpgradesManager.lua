@@ -63,7 +63,7 @@ end
 --this function adds the chosen item from the chosen item list to the player's passives list.
 function UpgradesManager:addtoplayer(num)
    for index, value in ipairs(self.ChosenItems) do
-    if index ==num and #player.passives<=3 then
+    if index ==num then
         table.insert(player.passives,self.ChosenItems[index])
         
         player:applyUpgrades()
