@@ -57,6 +57,10 @@ function love.update(dt)
         bullet.update(dt)
         enemy:update(dt)
         enemy:updateBullets(dt)
+        --killing the player
+        if player.isded then
+            Game:changestates("menu")
+        end
 
         -- Enemy spawning logic (Fixed)
         enemySpawnTimer = enemySpawnTimer + dt

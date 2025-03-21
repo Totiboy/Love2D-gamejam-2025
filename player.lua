@@ -5,7 +5,7 @@ player = {}
 function player:load()
     self.x = 100
     self.y = 0
-    self.health = 100
+    self.health = 3
     self.height = 100
     self.sprite = love.graphics.newImage("assets/Cop (Fixed Export).png")
     self.width = 50
@@ -19,6 +19,7 @@ function player:load()
     self.damage_taken = 1
     self.passives = {}
     self.hurtbox = HurtBox.new(self.x,self.y,self.sprite:getWidth()/6.2,self.sprite:getHeight()/6.2)
+    self.isded = false
 -------------------------------------------------------------- DASH VARIABLES
     self.dash_speed = 1400   -- Speed during dash
     self.dash_duration = 0.1 -- How long the dash lasts
@@ -133,6 +134,10 @@ function player:update(dt)
             self.waddle_direction = -self.waddle_direction -- Swap tilt direction
             playFootsteps()
         end
+    end
+    ---------------------------------------------Handling HEALTH-----------------------------------------------------
+    if self.health<=0 then
+        self.isded = true
     end
 end
 
