@@ -73,8 +73,7 @@ function UpgradesManager:Draw()
     love.graphics.rectangle("fill",100,100,love.graphics.getWidth()-210,love.graphics.getHeight()-210)
     for index, value in ipairs(self.ChosenItems) do
         love.graphics.setColor(0,0,0)
-        love.graphics.print(tostring(index)..": "..value , 100 , 100+index*100)
-
+        love.graphics.print(tostring(index)..": "..value , 200 , 100+index*100)
     end
 end
 
