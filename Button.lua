@@ -29,6 +29,7 @@ function Button:isClicked()
         self.isclicked = love.mouse.isDown(1)
         if self.wasclicked == false and self.isclicked == true then
             local audio = love.audio.newSource("assets/Audio/ButtonClick.wav","stream")
+            audio:setVolume(0.3)
             love.audio.play(audio)
             return true
         end

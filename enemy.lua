@@ -1,3 +1,5 @@
+hurtbox = require("hurtbox")
+hitbox = require("hitbox")
 ------------------------------------- Enemy Assets and Other Variables -------------------------------------------------------------
 enemy = {}
 local enemies = {}
@@ -24,31 +26,31 @@ function enemy:spawn()
     if side == 1 then
         -- Spawn above the screen
         x = math.random(0, love.graphics.getWidth())
-        y = -50
+        y = -70
     elseif side == 2 then
         -- Spawn below the screen
         x = math.random(0, love.graphics.getWidth())
-        y = love.graphics.getHeight() + 50
+        y = love.graphics.getHeight() + 70
     elseif side == 3 then
         -- Spawn to the left of the screen
-        x = -50
+        x = -70
         y = math.random(0, love.graphics.getHeight())
     elseif side == 4 then
         -- Spawn to the right of the screen
-        x = love.graphics.getWidth() + 50
+        x = love.graphics.getWidth() + 70
         y = math.random(0, love.graphics.getHeight())
     end
 
-
+    local chosenSprite = enemySprites[math.random(#enemySprites)]
     ------------------------------------------------------------ Add the enemy to the game ------------------------------------------------------------ 
     table.insert(enemies, {
         x = x, y = y, 
         speed = 160, -- Increased speed
-        sprite = enemySprites[math.random(#enemySprites)],
+        sprite = chosenSprite,
         gunSprite = enemyGunSprite,
         angle = 0, -- Ensure angle is initialized
         
-        health = 3,
+        health = 2,
         shootingTimer = 0,
         bulletsFired = 0,
         reloading = false,
@@ -57,7 +59,14 @@ function enemy:spawn()
         waddleTimer = 0,
         waddleDirection = 1,
         waddleSpeed = 10, -- Adjusted to match player waddle
-        waddleAmount = 0.05 -- Waddle magnitude
+        waddleAmount = 0.05, -- Waddle magnitude
+
+        hurtbox = HurtBox.new(x, y,chosenSprite:getWidth()/6,chosenSprite:getHeight()/6),
+
+        knockbackX = 0,
+        knockbackY = 0,
+        knockbackTimer = 0
+
     })
 end
 
@@ -96,6 +105,7 @@ end
 for i, e in ipairs(enemies) do
     avoidanceZone(e, dt) -- Call the function for each enemy
 end
+
 ------------------------------------------------------------ Enemy Spawning Logic ------------------------------------------------------------ 
     spawnTimer = spawnTimer + dt
     if spawnTimer >= spawnRate then
@@ -121,6 +131,8 @@ end
             e.moveType = math.random() < 0.5 and "edges" or "center"
             e.switchTimer = math.random(2, 4) -- Switch every x, y seconds
         end
+------------------------------------------------------------ Hurtbox follows Enemy ---------------------------------------------------------------------- 
+    e.hurtbox:update(e.x - 15,e.y - 50)
 
         -- Countdown for switching movement type
         e.switchTimer = e.switchTimer - dt
@@ -219,7 +231,20 @@ end
                 e.reloading = false
             end
         end
-
+--------------------------------------------------- Knockback Duration ---------------------------------------------------
+        for i, e in ipairs(enemies) do
+            -- ✅ Apply knockback if active
+            if e.knockbackTimer > 0 then
+                e.x = e.x + e.knockbackX * dt
+                e.y = e.y + e.knockbackY * dt
+        
+                -- ✅ Reduce knockback over time (Smooth Decay)
+                e.knockbackX = e.knockbackX * (1 - dt * 10)
+                e.knockbackY = e.knockbackY * (1 - dt * 10)
+        
+                e.knockbackTimer = e.knockbackTimer - dt
+            end
+        end
 --------------------------------------------------- Remove if dead --------------------------------------------------- 
         if e.health <= 0 then
             table.remove(enemies, i)
@@ -238,7 +263,8 @@ function enemy:shoot(e)
         y = e.y + math.sin(e.angle) * 20,
         dx = math.cos(e.angle) * bulletSpeed,
         dy = math.sin(e.angle) * bulletSpeed,
-        sprite = enemyBulletSprite
+        sprite = enemyBulletSprite,
+        hitbox = Hitbox.new(e.x, e.y, 10, 10)
     })
 end
 
@@ -246,10 +272,32 @@ enemy.bullets = {}
 
 ----------------------------------------- Updates Enemy Bullets --------------------------------------------------------------------------
 function enemy:updateBullets(dt)
-    for i, b in ipairs(self.bullets) do
+    for i = #self.bullets, 1, -1 do
+        local b = self.bullets[i]
         b.x = b.x + b.dx * dt
         b.y = b.y + b.dy * dt
-        
+        b.hitbox.x = b.x  -- Move hitbox with bullet
+        b.hitbox.y = b.y
+
+        -- Check if bullet hits the player AND player is not invincible
+        if b.hitbox:detectcollision(player.hurtbox) and not player.invincible then
+            player.health = player.health - player.damage_taken  -- Player takes damage
+            
+            -- Activate invincibility
+            player.invincible = true
+            player.invincibilityTimer = 1.5  -- Set invincibility duration
+            
+            -- Start screen shake
+            player.screenshake = 10  -- Adjust shake intensity
+
+            -- Play hit sound effect
+            local audio = love.audio.newSource("assets/Audio/PlayerHit.mp3", "static")
+            audio:setVolume(0.1)
+            love.audio.play(audio)
+
+            table.remove(self.bullets, i)  -- Remove bullet on hit
+        end
+
         -- Remove bullets outside the screen
         if b.x < -10 or b.x > love.graphics.getWidth() + 10 or b.y < -10 or b.y > love.graphics.getHeight() + 10 then
             table.remove(self.bullets, i)
@@ -266,6 +314,10 @@ function enemy:draw()
     for _, b in ipairs(self.bullets) do
         love.graphics.draw(b.sprite, b.x, b.y, 0, 0.5, 0.5, b.sprite:getWidth()/2, b.sprite:getHeight()/2)
     end
+end
+
+function enemy:getEnemies()
+    return enemies
 end
 
 return enemy

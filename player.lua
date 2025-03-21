@@ -7,7 +7,7 @@ function player:load()
     self.y = 0
     self.health = 100
     self.height = 100
-    self.sprite = love.graphics.newImage("assets/Cop.png")
+    self.sprite = love.graphics.newImage("assets/Cop (Fixed Export).png")
     self.width = 50
     self.speed = 200
     self.fire_rate = 0.4
@@ -16,8 +16,9 @@ function player:load()
     self.max_ammo = 12
     self.bullet_speed = 500
     self.ammo = self.max_ammo
+    self.damage_taken = 1
     self.passives = {}
-    self.hurtbox = HurtBox.new(self.x,self.y,self.sprite:getWidth()/6,self.sprite:getHeight()/6)
+    self.hurtbox = HurtBox.new(self.x,self.y,self.sprite:getWidth()/6.2,self.sprite:getHeight()/6.2)
 -------------------------------------------------------------- DASH VARIABLES
     self.dash_speed = 1400   -- Speed during dash
     self.dash_duration = 0.1 -- How long the dash lasts
@@ -34,6 +35,11 @@ function player:load()
     self.waddle_amount = 0.05 -- How much the player tilts
 
     self.angle = 0
+-------------------------------------------------------------- PLAYER HIT VARIABLES
+    self.invincible = false
+    self.invincibilityTime = 1  -- Time for invincibility
+    self.invincibilityTimer = 0
+    self.screenshake = 0  -- Track screenshake intensity
 
 end
 
@@ -75,7 +81,18 @@ function player:update(dt)
     if self.cooldown_timer > 0 then
         self.cooldown_timer = self.cooldown_timer - dt
     end
-
+    -- Handle Invincibility Timer for when Hit
+    if player.invincible then
+        player.invincibilityTimer = player.invincibilityTimer - dt
+        if player.invincibilityTimer <= 0 then
+            player.invincible = false  -- ✅ Player can be hit again
+        end
+    end
+    
+    -- Handle Screenshake Effect
+    if player.screenshake > 0 then
+        player.screenshake = player.screenshake - dt * 30  -- ✅ Reduce shake over time
+    end
     -------------------------------------- Handle Dashing -------------------------------------------------------------
     if self.is_dashing then
         self.dash_timer = self.dash_timer - dt
@@ -91,7 +108,8 @@ function player:update(dt)
     self:move(dt) -- Continue normal movement if not dashing
 
     -- Dash Activation
-    if love.keyboard.isDown("space") and self.cooldown_timer <= 0 then
+    if not self.is_dashing and self.cooldown_timer <= 0 and 
+    (love.keyboard.isDown("space") or love.keyboard.isDown("lshift")) then
         self:startDash()
     end
 
@@ -163,7 +181,7 @@ function player:applyUpgrades()
     -- Apply active upgrades
     for _, upgrade in ipairs(self.passives) do
         if upgrade == "Trigger Crank (+Fire Rate)" then
-            self.fire_rate = self.fire_rate - 0.2
+            self.fire_rate = self.fire_rate - 0.1
         elseif upgrade == "Long Barrell (+Bullet Speed)" then
             self.bullet_speed = self.bullet_speed + 250
         elseif upgrade == "Army Helmet (+Health)" then
@@ -171,7 +189,7 @@ function player:applyUpgrades()
         elseif upgrade == "Extended Magazine (+Ammo)" then
             self.max_ammo = self.max_ammo + 8
         elseif upgrade == "Foregrip (+Movement Speed)" then
-            self.speed = self.speed * 1.5
+            self.speed = self.speed * 1.2
         end
     end
 end
@@ -183,7 +201,19 @@ function player:draw()
     love.graphics.setColor(1,1,1)
     -- love.graphics.draw(self.sprite, self.x, self.y, 0, 0.25)
     love.graphics.draw(self.sprite, self.x, self.y, self.waddle_direction * self.waddle_amount, 0.2, 0.2, self.width / 2, self.height / 2)
-    self.hurtbox:draw()
+
+    -- ✅ Apply Screenshake Offset
+    local shakeX = math.random(-player.screenshake, player.screenshake)
+    local shakeY = math.random(-player.screenshake, player.screenshake)
+
+    love.graphics.draw(player.sprite, player.x + shakeX, player.y + shakeY, player.waddle_direction * player.waddle_amount, 0.2, 0.2, player.width / 2, player.height / 2)
+
+    -- ✅ Blink effect for invincibility (flashes every 0.1s)
+    if player.invincible and math.floor(player.invincibilityTimer * 10) % 2 == 0 then
+        love.graphics.setColor(1, 1, 1, 0.2)  -- Make player semi-transparent
+    else
+        love.graphics.setColor(1, 1, 1, 1)
+    end
 end
 
 return player

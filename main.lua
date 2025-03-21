@@ -13,7 +13,7 @@ enemy = require("enemy")
 
 --loading the game's necessary stuff
 function love.load()
-    TITLE  = "Operation: Quad-Father."
+    TITLE  = "Operation - Quad-Father"
     titlefont = love.graphics.newFont("assets/Fonts/ka1.ttf",40)
     normalfont = love.graphics.newFont("assets/Fonts/alagard.ttf",20)
     StartButton = Button.new(love.graphics.getWidth()/2-100,love.graphics.getHeight()/2+100,200,100,"start",30)
@@ -43,7 +43,7 @@ function love.update(dt)
     --menu state logic
     if Game.states.menu then
         if StartButton:isClicked() then
-            Game:changestates("running")
+            Game:changestates("selection")
         end
     end
 
