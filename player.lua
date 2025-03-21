@@ -208,6 +208,13 @@ end
 function player:draw()
     love.graphics.setColor(1,1,1)
     -- love.graphics.draw(self.sprite, self.x, self.y, 0, 0.25)
+     -- ✅ Blink effect for invincibility (flashes every 0.1s)
+     if player.invincible and math.floor(player.invincibilityTimer * 10) % 2 == 0 then
+        love.graphics.setColor(1, 1, 1, 0.2)  -- Make player semi-transparent
+    else
+        love.graphics.setColor(1, 1, 1, 1)
+    end
+
     love.graphics.draw(self.sprite, self.x, self.y, self.waddle_direction * self.waddle_amount, 0.2, 0.2, self.width / 2, self.height / 2)
 
     -- ✅ Apply Screenshake Offset
@@ -216,12 +223,7 @@ function player:draw()
 
     love.graphics.draw(player.sprite, player.x + shakeX, player.y + shakeY, player.waddle_direction * player.waddle_amount, 0.2, 0.2, player.width / 2, player.height / 2)
 
-    -- ✅ Blink effect for invincibility (flashes every 0.1s)
-    if player.invincible and math.floor(player.invincibilityTimer * 10) % 2 == 0 then
-        love.graphics.setColor(1, 1, 1, 0.2)  -- Make player semi-transparent
-    else
-        love.graphics.setColor(1, 1, 1, 1)
-    end
+   
 end
 
 return player

@@ -23,8 +23,6 @@ function love.load()
     selectbutton2 = Button.new(200+300,500,200,100,"Select 2",20)
     selectbutton3 = Button.new(200+300+300,500,200,100,"Select 3",20)
 
-    
-    
     --this line makes it so the game starts with the menu state.
     Game:changestates("menu")
     --------
@@ -45,6 +43,8 @@ function love.update(dt)
     if Game.states.menu then
         if StartButton:isClicked() then
             Game:changestates("selection")
+            player:load()
+            PICKTHEMITEMS.cancall = true
         end
     end
 
@@ -83,6 +83,7 @@ function love.update(dt)
 
         --horrible code? absolutely , do I care? fuck no.
         PICKTHEMITEMS:Load()
+        
      
         
         if selectbutton1:isClicked() then
