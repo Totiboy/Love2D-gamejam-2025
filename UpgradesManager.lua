@@ -35,24 +35,37 @@ local cancall = true
 
 --this function picks from the Items list and adds them to the chosen items list to make the player take from them
 function UpgradesManager:Load()
-    
     if cancall then
-        for i = 1, 3, 1 do
-            local index = love.math.random(1,#self.Items)
-            local pickeditem = self.Items[index]
-            table.insert(self.ChosenItems,pickeditem)
-            table.remove(self.Items,index)
+        -- Reseed RNG
+        love.math.setRandomSeed(os.time() + love.math.random(1, 1000000))
+
+        -- Make a copy of the item pool
+        local availableItems = {}
+        for _, item in ipairs(self.Items) do
+            table.insert(availableItems, item)
         end
+
+        -- Pick 3 unique items
+        self.ChosenItems = {}
+        for i = 1, math.min(3, #availableItems) do
+            local index = love.math.random(1, #availableItems) -- Pick random index
+            table.insert(self.ChosenItems, availableItems[index]) -- Add to chosen list
+            table.remove(availableItems, index) -- Remove from pool to prevent duplicates
+        end
+
         cancall = false
     end
 end
+
+
+
 
 --this function adds the chosen item from the chosen item list to the player's passives list.
 function UpgradesManager:addtoplayer(num)
    for index, value in ipairs(self.ChosenItems) do
     if index ==num and #player.passives<=3 then
         table.insert(player.passives,self.ChosenItems[index])
-        table.remove(self.ChosenItems,index)
+        
         player:applyUpgrades()
     end
    end
@@ -60,11 +73,10 @@ end
 
 --this function adds everything that remains into the Items list
 function UpgradesManager:Recover()
-    
-    for index, value in ipairs(self.ChosenItems) do
-        table.insert(self.Items,value)
+    for _, value in ipairs(self.ChosenItems) do
+        table.insert(self.Items, value)
     end
-    
+    cancall = true -- Allow Load() to run again
 end
 
 --this draws everything

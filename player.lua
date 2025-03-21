@@ -3,9 +3,9 @@ player = {}
 
 --loading basic player stats
 function player:load()
-    self.x = 100
-    self.y = 0
-    self.health = 100
+    self.x = 500
+    self.y = 500
+    self.health = 3
     self.height = 100
     self.sprite = love.graphics.newImage("assets/Cop (Fixed Export).png")
     self.width = 50
@@ -19,6 +19,7 @@ function player:load()
     self.damage_taken = 1
     self.passives = {}
     self.hurtbox = HurtBox.new(self.x,self.y,self.sprite:getWidth()/6.2,self.sprite:getHeight()/6.2)
+    self.isded = false
 -------------------------------------------------------------- DASH VARIABLES
     self.dash_speed = 1400   -- Speed during dash
     self.dash_duration = 0.1 -- How long the dash lasts
@@ -70,6 +71,8 @@ function player:move(dt)
 ---this sets up the speed to correspond with the direction of the movement and deltatime
     self.x = self.x + self.speed * d.x * dt
     self.y = self.y + self.speed * d.y * dt
+    self.x = math.max(0, math.min(self.x, love.graphics.getWidth() - self.hurtbox.width))
+    self.y = math.max(0, math.min(self.y, love.graphics.getHeight() - self.hurtbox.height))
     self.hurtbox:update(self.x,self.y)
 end
 
@@ -134,32 +137,37 @@ function player:update(dt)
             playFootsteps()
         end
     end
+    ---------------------------------------------Handling HEALTH-----------------------------------------------------
+    if self.health<=0 then
+        self.isded = true
+    end
 end
 
 ----------------------------------------------- During Dash ---------------------------------------------------------
 function player:startDash()
     local d = {x = 0, y = 0}
+    
+        if love.keyboard.isDown("right") or love.keyboard.isDown("d") then
+            d.x = d.x + 1
+        end
+        if love.keyboard.isDown("left") or love.keyboard.isDown("a") then
+            d.x = d.x - 1
+        end
+        if love.keyboard.isDown("up") or love.keyboard.isDown("w") then
+            d.y = d.y - 1
+        end
+        if love.keyboard.isDown("down") or love.keyboard.isDown("s") then
+            d.y = d.y + 1
+        end
 
-    if love.keyboard.isDown("right") or love.keyboard.isDown("d") then
-        d.x = d.x + 1
-    end
-    if love.keyboard.isDown("left") or love.keyboard.isDown("a") then
-        d.x = d.x - 1
-    end
-    if love.keyboard.isDown("up") or love.keyboard.isDown("w") then
-        d.y = d.y - 1
-    end
-    if love.keyboard.isDown("down") or love.keyboard.isDown("s") then
-        d.y = d.y + 1
-    end
-
-    -- Normalize direction
-    local length = math.sqrt(d.x^2 + d.y^2)
-    if length > 0 then
-        self.dir_x, self.dir_y = d.x / length, d.y / length
-        self.is_dashing = true
-        self.dash_timer = self.dash_duration
-    end
+        -- Normalize direction
+        local length = math.sqrt(d.x^2 + d.y^2)
+        if length > 0 then
+            self.dir_x, self.dir_y = d.x / length, d.y / length
+            self.is_dashing = true
+            self.dash_timer = self.dash_duration
+        end
+    
 end
 
 ----------------------------------------------- Item Upgrades ---------------------------------------------------------
@@ -200,6 +208,13 @@ end
 function player:draw()
     love.graphics.setColor(1,1,1)
     -- love.graphics.draw(self.sprite, self.x, self.y, 0, 0.25)
+     -- ✅ Blink effect for invincibility (flashes every 0.1s)
+     if player.invincible and math.floor(player.invincibilityTimer * 10) % 2 == 0 then
+        love.graphics.setColor(1, 1, 1, 0.2)  -- Make player semi-transparent
+    else
+        love.graphics.setColor(1, 1, 1, 1)
+    end
+
     love.graphics.draw(self.sprite, self.x, self.y, self.waddle_direction * self.waddle_amount, 0.2, 0.2, self.width / 2, self.height / 2)
 
     -- ✅ Apply Screenshake Offset
@@ -208,12 +223,7 @@ function player:draw()
 
     love.graphics.draw(player.sprite, player.x + shakeX, player.y + shakeY, player.waddle_direction * player.waddle_amount, 0.2, 0.2, player.width / 2, player.height / 2)
 
-    -- ✅ Blink effect for invincibility (flashes every 0.1s)
-    if player.invincible and math.floor(player.invincibilityTimer * 10) % 2 == 0 then
-        love.graphics.setColor(1, 1, 1, 0.2)  -- Make player semi-transparent
-    else
-        love.graphics.setColor(1, 1, 1, 1)
-    end
+   
 end
 
 return player

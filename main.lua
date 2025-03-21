@@ -9,7 +9,7 @@ PICKTHEMITEMS = require("UpgradesManager")
 Game = Game()
 enemy = require("enemy")
 waves = require("waves")
-
+bosses = require("bosses")
 
 
 --loading the game's necessary stuff
@@ -17,14 +17,13 @@ function love.load()
     TITLE  = "Operation - Quad-Father"
     titlefont = love.graphics.newFont("assets/Fonts/ka1.ttf",40)
     normalfont = love.graphics.newFont("assets/Fonts/alagard.ttf",20)
+    healthsprite = love.graphics.newImage("assets/UI/PlayerHP.png")
     StartButton = Button.new(love.graphics.getWidth()/2-100,love.graphics.getHeight()/2+100,200,100,"start",30)
     ResumeButton = Button.new(10,love.graphics.getHeight()-110,200,100,"Resume",20)
     selectbutton1 = Button.new(200,500,200,100,"Select 1",20)
     selectbutton2 = Button.new(200+300,500,200,100,"Select 2",20)
     selectbutton3 = Button.new(200+300+300,500,200,100,"Select 3",20)
 
-    
-    
     --this line makes it so the game starts with the menu state.
     Game:changestates("menu")
     --------
@@ -44,8 +43,9 @@ function love.update(dt)
     --menu state logic
     if Game.states.menu then
         if StartButton:isClicked() then
-            waves.startWave()
+            waves:startWave()
             player:load()
+            enemy.clearEnemies()  -- ✅ Ensure enemies reset
         end
     end
 
@@ -57,21 +57,41 @@ function love.update(dt)
         Firing()
         bullet.reload() 
         bullet.update(dt)
+      
     
         -- ✅ Enemy Updates Only in Running State (NOT Boss)
         enemy:update(dt)
         enemy:updateBullets(dt)
-    
-        -- ✅ Enemy Spawning Logic (Only in Running)
+        --killing the player
+        if player.isded then
+            Game:changestates("menu")
+            enemy.clearEnemies()
+            player:load()
+        end
+
+        -- Enemy spawning logic (Fixed)
         enemySpawnTimer = enemySpawnTimer + dt
         if enemySpawnTimer >= enemySpawnInterval then
             enemy.spawn()
             enemySpawnTimer = 0  -- Reset timer
         end
+
     elseif Game.states.boss then
-        -- ✅ No enemy updates, bullets, or spawns during boss fights
-        bosses:update(dt)  -- Only boss logic runs
-    end    
+        -- Boss state: player functions as normal (mirrors running state)...
+        player:move(dt)
+        player:update(dt)
+        gun:update()
+        Firing()
+        bullet.reload()
+        bullet.update(dt)
+        waves:boss(dt)
+        
+        -- Check if player dies in boss state too
+        if player.isded then
+            Game:changestates("menu")
+            player:load()
+        end
+    end
     
 ---------------------------------------------------------------------------------------------Pause state logic
     if Game.states.pause then
@@ -80,104 +100,64 @@ function love.update(dt)
         end
     end
 
-    if Game.states.firstselection then
-
-        --Did I copy the horrible code again? absolutely , do I care? fuck no.
+    if Game.states.firstselection or Game.states.selection then
         PICKTHEMITEMS:Load()
-     
-        
         if selectbutton1:isClicked() then
             PICKTHEMITEMS:addtoplayer(1)
             PICKTHEMITEMS:Recover()
-            
-            --Game:changestates("running")
             waves:nextWave()
-        end
-        if selectbutton2:isClicked() then
+        elseif selectbutton2:isClicked() then
             PICKTHEMITEMS:addtoplayer(2)
             PICKTHEMITEMS:Recover()
-
-            --Game:changestates("running")
             waves:nextWave()
-        end
-        if selectbutton3:isClicked() then
+        elseif selectbutton3:isClicked() then
             PICKTHEMITEMS:addtoplayer(3)
             PICKTHEMITEMS:Recover()
-
-            --Game:changestates("running")
             waves:nextWave()
         end
-    end
-    
-    --selection state
-    if Game.states.selection then
-
-        --horrible code? absolutely , do I care? fuck no.
-        PICKTHEMITEMS:Load()
-     
-        
-        if selectbutton1:isClicked() then
-            PICKTHEMITEMS:addtoplayer(1)
-            PICKTHEMITEMS:Recover()
-            
-            --Game:changestates("running")
-            waves:nextWave()
-        end
-        if selectbutton2:isClicked() then
-            PICKTHEMITEMS:addtoplayer(2)
-            PICKTHEMITEMS:Recover()
-
-            --Game:changestates("running")
-            waves:nextWave()
-        end
-        if selectbutton3:isClicked() then
-            PICKTHEMITEMS:addtoplayer(3)
-            PICKTHEMITEMS:Recover()
-
-            --Game:changestates("running")
-            waves:nextWave()
-        end 
     end
 end
 
 --this displays different stuff on the screen based on the game state.
 function love.draw()
-
-    --the menu state
     if Game.states.menu then
         love.graphics.setFont(titlefont)
         love.graphics.setColor(1,1,1)
-        love.graphics.printf(TITLE,love.graphics.getWidth()/4,love.graphics.getHeight()/3,1000,"left")
-        
+        love.graphics.printf(TITLE, love.graphics.getWidth()/4, love.graphics.getHeight()/3, 1000, "left")
         StartButton:draw()
         love.graphics.setFont(normalfont)
-    end
-
-    --the running state
-    if Game.states.running then
-        
+    elseif Game.states.running then
         player:draw()
         bullet.draw()
         weapon:draw()
-        enemy:draw() -- ✅ Make sure enemy.draw() exists in enemy.lua
-        --drawing the ammo displayer
+        enemy:draw()  -- Draws enemy waves
+        -- UI: Ammo, Health, etc.
         love.graphics.setColor(1,1,1)
         love.graphics.setFont(normalfont)
-        love.graphics.print("AMMO :"..player.ammo, 10, love.graphics.getHeight() - 100,0,4)
-       
-        
-    end
-
-    --the pause state
-    if Game.states.pause then
+        love.graphics.print("AMMO: " .. player.ammo, 10, love.graphics.getHeight() - 100, 0, 4)
+        for i = 1, player.health do
+            love.graphics.draw(healthsprite, i * 50, 20, 0, .45)
+        end
+    elseif Game.states.boss then
+        player:draw()
+        bullet.draw()
+        weapon:draw()
+        if bosses.currentBoss and bosses.currentBoss.alive then
+            bosses.currentBoss:draw()  -- Draw the boss instead of enemies
+        end
+        -- UI: Ammo, Health, etc.
+        love.graphics.setColor(1,1,1)
+        love.graphics.setFont(normalfont)
+        love.graphics.print("AMMO: " .. player.ammo, 10, love.graphics.getHeight() - 100, 0, 4)
+        for i = 1, player.health do
+            love.graphics.draw(healthsprite, i * 50, 20, 0, .45)
+        end
+    elseif Game.states.pause then
         love.graphics.setColor(1,1,1)
         love.graphics.setFont(titlefont)
-        love.graphics.print("PAUSED",500 ,300,0,2,2)
+        love.graphics.print("PAUSED", 500, 300, 0, 2, 2)
         ResumeButton:draw()
-    end
-
-    --selection state
-    if Game.states.selection or Game.states.firstselection then
+    elseif Game.states.firstselection or Game.states.selection then
         PICKTHEMITEMS:Draw()
         selectbutton1:draw()
         selectbutton2:draw()

@@ -1,5 +1,6 @@
 hurtbox = require("hurtbox")
 hitbox = require("hitbox")
+waves = require("waves")
 ------------------------------------- Enemy Assets and Other Variables -------------------------------------------------------------
 enemy = {}
 local enemies = {}
@@ -248,6 +249,7 @@ end
 --------------------------------------------------- Remove if dead --------------------------------------------------- 
         if e.health <= 0 then
             table.remove(enemies, i)
+            waves:enemyDefeated()
         end
     end
 end
@@ -318,6 +320,11 @@ end
 
 function enemy:getEnemies()
     return enemies
+end
+
+function enemy.clearEnemies()
+    enemies = {}  -- ✅ Clears all active enemies
+    enemy.bullets = {}  -- ✅ Clears all enemy bullets
 end
 
 return enemy
