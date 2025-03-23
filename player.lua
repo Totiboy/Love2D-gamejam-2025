@@ -17,6 +17,7 @@ function player:load()
     self.bullet_speed = 500
     self.ammo = self.max_ammo
     self.damage_taken = 1
+    self.bullets = {}
     self.passives = {}
     self.hurtbox = HurtBox.new(self.x,self.y,self.sprite:getWidth()/6.2,self.sprite:getHeight()/6.2)
     self.isded = false
@@ -172,35 +173,45 @@ end
 
 ----------------------------------------------- Item Upgrades ---------------------------------------------------------
 function player:applyUpgrades()
-    -- Store base stats to reset before applying upgrades
-    self.baseFireRate = self.baseFireRate or 0.4
-    self.baseBulletSpeed = self.baseBulletSpeed or 500
-    self.baseHealth = self.baseHealth or 3
-    self.baseMaxAmmo = self.baseMaxAmmo or 12
-    self.baseSpeed = self.baseSpeed or 200
+    -- If this is the first time applying upgrades, store the base values
+    if not self.upgraded then
+        self.baseFireRate = self.fire_rate
+        self.baseBulletSpeed = self.bullet_speed
+        self.baseHealth = self.health
+        self.baseMaxAmmo = self.max_ammo
+        self.baseSpeed = self.speed
+        self.baseDamage = self.damage
+        self.baseDT = self.damage_taken
+        self.baseDC = self.dash_cooldown
+        self.upgraded = true  -- Mark that we've stored base values
+    end
 
-    -- Reset stats to base values before applying upgrades
-    self.fire_rate = self.baseFireRate
-    self.bullet_speed = self.baseBulletSpeed
-    self.health = self.baseHealth
-    self.max_ammo = self.baseMaxAmmo
-    self.speed = self.baseSpeed
-
-    -- Apply active upgrades
+    -- Apply upgrades without resetting
     for _, upgrade in ipairs(self.passives) do
         if upgrade == "Trigger Crank (+Fire Rate)" then
-            self.fire_rate = self.fire_rate - 0.1
+            self.fire_rate = self.baseFireRate - 0.05
         elseif upgrade == "Long Barrell (+Bullet Speed)" then
-            self.bullet_speed = self.bullet_speed + 250
+            self.bullet_speed = self.baseBulletSpeed + 250
         elseif upgrade == "Army Helmet (+Health)" then
-            self.health = self.health + 1
+            self.health = self.baseHealth + 1  -- ⚠️ This now stacks properly!
         elseif upgrade == "Extended Magazine (+Ammo)" then
-            self.max_ammo = self.max_ammo + 8
+            self.max_ammo = self.baseMaxAmmo + 8
         elseif upgrade == "Foregrip (+Movement Speed)" then
-            self.speed = self.speed * 1.2
+            self.speed = self.baseSpeed * 1.2
+        elseif upgrade == "+P Rounds (+DMG and -Fire Rate)" then
+            self.damage = self.baseDamage + 1
+            self.fire_rate = self.baseFireRate - 0.1
+        elseif upgrade == "Army Boots (-Dash Cooldown)" then
+            self.dash_cooldown = self.baseDC - 0.5
+        elseif upgrade == "Glock Switch (++Fire Rate and -Damage)" then
+            self.fire_rate = self.baseFireRate - 0.2
+            self.damage = self.baseDamage * 0.75
+        elseif upgrade == "Overdrive Serum (+All Stats and 2x Damage Taken)" then
+            self.damage_taken = self.baseDT * 2
         end
     end
 end
+
 
 
 

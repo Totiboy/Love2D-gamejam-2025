@@ -5,12 +5,13 @@ Diamante = {}
 
 function Diamante:load()
     self.name = "Two-Faced Diamante"
-    self.health = 75
+    self.addedtotalHP = 25
+    self.health = self.addedtotalHP
     self.baseSpeed = 300
     self.speed = 300
     self.fireRate = 0.3  -- Base fire rate
     self.fireCooldown = 0
-    self.bulletSpeed = 370
+    self.bulletSpeed = 375
     self.sprite = love.graphics.newImage("assets/Bosses/Two-Faced Diamante.png")
     self.gunSprite = love.graphics.newImage("assets/Bosses/Uzi.png")
     self.bulletSprite = love.graphics.newImage("assets/EnemyBullet.png")
@@ -536,7 +537,7 @@ function Diamante:draw()
     
     -- Health bar fill
     love.graphics.setColor(1, 0, 0)
-    love.graphics.rectangle("fill", healthX, healthY, healthBarWidth * (self.health / 75), healthBarHeight)
+    love.graphics.rectangle("fill", healthX, healthY, healthBarWidth * (self.health / self.addedtotalHP), healthBarHeight)
     
     -- Health bar border
     love.graphics.setColor(0, 0, 0)
@@ -548,7 +549,7 @@ function Diamante:draw()
 end
 
 function Diamante:fullReset()
-    self.health = 75
+    self.addedtotalHP = 25 * waves.currentWave
     self.speed = self.baseSpeed
     self.fireRate = 0.3
     self.fireCooldown = 0

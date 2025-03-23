@@ -5,7 +5,7 @@ waves = require("waves")
 enemy = {}
 local enemies = {}
 local spawnTimer = 0
-local maxEnemies = 8
+local maxEnemies = 20
 local spawnRate = 4 -- Seconds
 local enemySprites = {
     love.graphics.newImage("assets/Associates1.png"),
@@ -46,7 +46,7 @@ function enemy:spawn()
     ------------------------------------------------------------ Add the enemy to the game ------------------------------------------------------------ 
     table.insert(enemies, {
         x = x, y = y, 
-        speed = 160, -- Increased speed
+        speed = 250, -- Increased speed
         sprite = chosenSprite,
         gunSprite = enemyGunSprite,
         angle = 0, -- Ensure angle is initialized
@@ -112,7 +112,7 @@ end
     if spawnTimer >= spawnRate then
         if #enemies > 5 then
             enemy:spawn()
-        elseif #enemies < 4 then 
+        elseif #enemies < 10 then 
             enemy:spawn()
             enemy:spawn()
         end
@@ -278,8 +278,8 @@ function enemy:updateBullets(dt)
         local b = self.bullets[i]
         b.x = b.x + b.dx * dt
         b.y = b.y + b.dy * dt
-        b.hitbox.x = b.x  -- Move hitbox with bullet
-        b.hitbox.y = b.y
+        b.hitbox.x = b.x - 5  -- Move hitbox with bullet
+        b.hitbox.y = b.y - 5
 
         -- Check if bullet hits the player AND player is not invincible
         if b.hitbox:detectcollision(player.hurtbox) and not player.invincible then
