@@ -9,7 +9,9 @@ PICKTHEMITEMS = require("UpgradesManager")
 Game = Game()
 enemy = require("enemy")
 waves = require("waves")
-bosses = require("bosses")
+Diamante = require("Boss (Diamante)")
+Luca = require("Boss (Luca)")
+HollowHagen = require("Boss (Hagen)")
 
 
 --loading the game's necessary stuff
@@ -57,16 +59,16 @@ function love.update(dt)
         Firing()
         bullet.reload() 
         bullet.update(dt)
-      
-    
-        -- ✅ Enemy Updates Only in Running State (NOT Boss)
         enemy:update(dt)
         enemy:updateBullets(dt)
         --killing the player
         if player.isded then
             Game:changestates("menu")
+            UpgradesManager:Reset()
             enemy.clearEnemies()
-            player:load()
+            Diamante:fullReset()
+            --Luca:fullReset()
+            --HollowHagen:fullReset()
         end
 
         -- Enemy spawning logic (Fixed)
@@ -84,12 +86,20 @@ function love.update(dt)
         Firing()
         bullet.reload()
         bullet.update(dt)
-        waves:boss(dt)
+        waves:nextBoss(dt)
+        if not Diamante.alive then
+            waves:nextWave()
+        end
+----------------------------------------------------------------------------------------------------------------------------
         
         -- Check if player dies in boss state too
         if player.isded then
             Game:changestates("menu")
-            player:load()
+            UpgradesManager:Reset()
+            enemy.clearEnemies()
+            Diamante:fullReset()
+            --Luca:fullReset()
+            --HollowHagen:fullReset()
         end
     end
     
@@ -142,10 +152,8 @@ function love.draw()
         player:draw()
         bullet.draw()
         weapon:draw()
-        if bosses.currentBoss and bosses.currentBoss.alive then
-            bosses.currentBoss:draw()  -- Draw the boss instead of enemies
-        end
-        -- UI: Ammo, Health, etc.
+        waves:drawBoss()
+        -------------------------------------------------------------------------------------------------------------------
         love.graphics.setColor(1,1,1)
         love.graphics.setFont(normalfont)
         love.graphics.print("AMMO: " .. player.ammo, 10, love.graphics.getHeight() - 100, 0, 4)

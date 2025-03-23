@@ -12,7 +12,8 @@ function Game()
         selection = false,
         firstselection = false,
         boss = false,
-        finalboss = false
+        finalboss = false,
+        stats = false
     },
 
     --and this function handles the switching between states by checking whether the state you pass in the parameter corresponds
@@ -25,6 +26,7 @@ function Game()
         self.states.boss = state == "boss"
         self.states.firstselection = state == "firstselection"
         self.states.finalboss = state == "finalboss"
+        self.states.stats = state == "stats"
     end
         } 
 end

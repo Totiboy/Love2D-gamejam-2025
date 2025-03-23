@@ -19,9 +19,12 @@ function bullet.spawn(x, y, targetX, targetY, speed)
         audio:setVolume(0.08)
         love.audio.play(audio)
 
+        local bulletX = weapon.x + weapon.sprite:getWidth() * 0.25 * math.cos(angle)
+        local bulletY = weapon.y + weapon.sprite:getHeight() * 0.25 * math.sin(angle)
+        
         table.insert(bullet.list, {
-            x = weapon.x + weapon.sprite:getWidth() * 0.25 * math.cos(angle),
-            y = weapon.y + weapon.sprite:getHeight() * 0.25 * math.sin(angle),
+            x = bulletX,
+            y = bulletY,
             vx = velocityX,
             vy = velocityY,
             speed = speed,
@@ -29,7 +32,7 @@ function bullet.spawn(x, y, targetX, targetY, speed)
             startY = y,
             distanceTraveled = 0, -- Track the distance moved
             sprite = love.graphics.newImage("assets/PlayerBullet.png"), -- Add Bullet Sprite
-            hitbox = Hitbox.new(x, y, 20, 20)
+            hitbox = Hitbox.new(bulletX, bulletY, 20, 20)  -- Make sure hitbox is at the bullet position
         })
 
         bullet.cooldown = player.fire_rate -- Reset cooldown
@@ -65,33 +68,34 @@ function bullet.update(dt)
         for j, e in ipairs(enemy:getEnemies()) do
             if b.hitbox:detectcollision(e.hurtbox) then
                 e.health = e.health - player.damage  -- ✅ Deal damage to enemy
-        
+                
                 -- ✅ Calculate Knockback Direction (Push Enemy Away from Bullet Impact)
                 local knockbackForce = 300  -- Strength of knockback
                 local dx, dy = e.x - b.x, e.y - b.y  -- Direction from bullet to enemy
                 local dist = math.sqrt(dx^2 + dy^2)
-        
+                
                 if dist > 0 then
                     e.knockbackX = (dx / dist) * knockbackForce  -- Set knockback velocity
                     e.knockbackY = (dy / dist) * knockbackForce
                     e.knockbackTimer = 0.2  -- Knockback lasts for 0.2 seconds
                 end
-        
+                
                 table.remove(bullet.list, i)  -- Remove bullet on hit
                 break
             end
         end
+                
+                -- Calculate distance traveled --
+                local traveled = math.sqrt((b.x - b.startX)^2 + (b.y - b.startY)^2)
+                b.distanceTraveled = traveled
         
-        -- Calculate distance traveled --
-        local traveled = math.sqrt((b.x - b.startX)^2 + (b.y - b.startY)^2)
-        b.distanceTraveled = traveled
-
-        -- Remove bullet if it has traveled 1500 units
-        if b.distanceTraveled > 1500 then
-            table.remove(bullet.list, i)
+                -- Remove bullet if it has traveled 1500 units
+                if b.distanceTraveled > 1500 then
+                    table.remove(bullet.list, i)
+                end
+            end
         end
-    end
-end
+
 
 function bullet.draw()
     for _, b in ipairs(bullet.list) do
